@@ -16,6 +16,10 @@
 		9AF2D8062CCE182900176584 /* DebtFreeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AF2D8052CCE182900176584 /* DebtFreeTests.swift */; };
 		9AF2D8102CCE182900176584 /* DebtFreeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AF2D80F2CCE182900176584 /* DebtFreeUITests.swift */; };
 		9AF2D8122CCE182900176584 /* DebtFreeUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AF2D8112CCE182900176584 /* DebtFreeUITestsLaunchTests.swift */; };
+		9AF2D81F2CCE191A00176584 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AF2D81E2CCE191A00176584 /* OnboardingView.swift */; };
+		9AF2D8212CCE229E00176584 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AF2D8202CCE229E00176584 /* WelcomeView.swift */; };
+		9AF2D8232CCE22FE00176584 /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AF2D8222CCE22FE00176584 /* SignInView.swift */; };
+		9AF2D8252CCE231C00176584 /* SignUpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AF2D8242CCE231C00176584 /* SignUpView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,6 +52,10 @@
 		9AF2D80B2CCE182900176584 /* DebtFreeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DebtFreeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9AF2D80F2CCE182900176584 /* DebtFreeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebtFreeUITests.swift; sourceTree = "<group>"; };
 		9AF2D8112CCE182900176584 /* DebtFreeUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebtFreeUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		9AF2D81E2CCE191A00176584 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		9AF2D8202CCE229E00176584 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
+		9AF2D8222CCE22FE00176584 /* SignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInView.swift; sourceTree = "<group>"; };
+		9AF2D8242CCE231C00176584 /* SignUpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -100,6 +108,10 @@
 			children = (
 				9AF2D7EF2CCE182800176584 /* DebtFreeApp.swift */,
 				9AF2D7F12CCE182800176584 /* ContentView.swift */,
+				9AF2D81E2CCE191A00176584 /* OnboardingView.swift */,
+				9AF2D8202CCE229E00176584 /* WelcomeView.swift */,
+				9AF2D8222CCE22FE00176584 /* SignInView.swift */,
+				9AF2D8242CCE231C00176584 /* SignUpView.swift */,
 				9AF2D7F32CCE182900176584 /* Assets.xcassets */,
 				9AF2D7F82CCE182900176584 /* Persistence.swift */,
 				9AF2D7FA2CCE182900176584 /* DebtFree.xcdatamodeld */,
@@ -264,8 +276,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				9AF2D7F92CCE182900176584 /* Persistence.swift in Sources */,
+				9AF2D8232CCE22FE00176584 /* SignInView.swift in Sources */,
+				9AF2D8212CCE229E00176584 /* WelcomeView.swift in Sources */,
 				9AF2D7F22CCE182800176584 /* ContentView.swift in Sources */,
+				9AF2D8252CCE231C00176584 /* SignUpView.swift in Sources */,
 				9AF2D7FC2CCE182900176584 /* DebtFree.xcdatamodeld in Sources */,
+				9AF2D81F2CCE191A00176584 /* OnboardingView.swift in Sources */,
 				9AF2D7F02CCE182800176584 /* DebtFreeApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
