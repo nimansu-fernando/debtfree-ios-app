@@ -14,9 +14,9 @@ struct OnboardingView: View {
     var body: some View {
         ZStack {
             // Background image
-            Image("onboarding-bg") // Replace with your background image asset name
+            Image("onboarding-bg")
                 .resizable()
-                .edgesIgnoringSafeArea(.all) // Extend background to all screen edges
+                .edgesIgnoringSafeArea(.all)
 
             VStack {
                 TabView(selection: $currentPage) {
@@ -41,9 +41,9 @@ struct OnboardingView: View {
                     )
                     .tag(2)
                 }
-                .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never)) // Hide default indicator dots
+                .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
 
-                Spacer() // Pushes the following views to the bottom
+                Spacer()
 
                 // Custom page indicator dots with tap functionality
                 HStack(spacing: 8) {
@@ -71,19 +71,20 @@ struct OnboardingView: View {
                             .frame(width: 268)
                             .padding()
                             .foregroundColor(.white)
-                            .background(Color.blue)
+                            .background(Color("MainColor"))
                             .cornerRadius(15)
                     }
                     .padding(.horizontal)
 
                     if currentPage < totalPages - 1 {
                         Button("Skip") {
-                            // Action for skip button
+                            // skip action
                         }
                         .padding(.top, 10)
                     }
                 }
                 .padding(.bottom)
+                
             }
             .padding(.bottom, 40) // Additional padding if needed
         }

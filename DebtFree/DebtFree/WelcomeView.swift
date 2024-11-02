@@ -10,75 +10,81 @@ import SwiftUI
 struct WelcomeView: View {
     var body: some View {
         ZStack {
-            // Background Image
-            Image("welcomeview-bg") // Replace with your background image name
-                .resizable()
-                //.scaledToFill() // Scale the image to fill the entire area
-                .ignoresSafeArea() // Ignore safe area to cover the whole screen
+            VStack(spacing: 0) {
+                Color("AccentColor1")
+                    .frame(height: 370)
+                
+                Color.white
+            }
+            .ignoresSafeArea() // Extends the colors to the edges
             
-            ScrollView { // Add a ScrollView to make content scrollable
-                VStack(spacing: 20) {
-                    Spacer(minLength: 10) // Add a minimum space at the top
-                    
-                    Image("DebtFreeLogo")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 300, height: 250)
-                    
-                    Text("Welcome to DebtFree!")
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .padding(.top, 50)
-                    
-                    Text("Take control of your financial future. Track your debts, prioritize payments, and reach financial freedom with ease.")
-                        .font(.body)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 30)
-                    
-                    Spacer() // Space between text and buttons
-                    
-                    VStack(spacing: 15) {
-                        Button(action: {
-                            // Navigate to Sign In
-                        }) {
-                            Text("Sign In")
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.blue)
-                                .foregroundColor(.white)
-                                .cornerRadius(10)
-                        }
-                        
-                        Button(action: {
-                            // Navigate to Sign Up
-                        }) {
-                            Text("Create an Account")
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.blue)
-                                .foregroundColor(.white)
-                                .cornerRadius(10)
-                        }
-                    }
+            VStack(spacing: 20) {
+                Spacer(minLength: 10) // Add a minimum space at the top
+                
+                Image("DebtFreeLogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 300, height: 250)
+                
+                Text("Welcome to DebtFree!")
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .padding(.top, 50)
+                
+                Text("Take control of your financial future. Track your debts, prioritize payments, and reach financial freedom with ease.")
+                    .font(.body)
+                    .multilineTextAlignment(.center)
                     .padding(.horizontal, 30)
+                    .fixedSize(horizontal: false, vertical: true) // Prevents text truncation
+                
+                Spacer() // Space between text and buttons
+                
+                VStack(spacing: 15) {
+                    Button(action: {
+                        // sign In
+                    }) {
+                        Text("Sign In")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color("MainColor"))
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                    }
                     
-                    Spacer() // Space before the footer
-                    
+                    Button(action: {
+                        // Navigate to Sign Up
+                    }) {
+                        Text("Create an Account")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color("MainColor"))
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                    }
+                }
+                .padding(.horizontal, 30)
+                
+                Spacer() // Space before the footer
+                
+                VStack(spacing: 4) { // Adjust spacing as needed for line height
                     Text("By continuing, you agree to our")
                         .font(.footnote)
-                    HStack(spacing: 5) {
+                        .multilineTextAlignment(.center)
+
+                    HStack(spacing: 6) {
                         Text("Privacy Policy")
-                            .foregroundColor(.green)
+                            .foregroundColor(Color("SecondaryColor"))
                         Text("and")
                         Text("Terms of Services")
-                            .foregroundColor(.green)
+                            .foregroundColor(Color("SecondaryColor"))
                     }
                     .font(.footnote)
-                    
-                    Spacer(minLength: 20) // Space at the bottom
                 }
-                .padding() // General padding for the VStack
+                .foregroundColor(.gray) // Apply the gray color to the entire VStack if desired
+                
+                Spacer(minLength: 20) // Space at the bottom
             }
+            .padding() // General padding for the VStack
         }
     }
 }
