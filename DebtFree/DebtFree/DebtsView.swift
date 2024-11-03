@@ -7,270 +7,264 @@
 
 import SwiftUI
 
-// Debts View (Debts Page)
-struct DebtsView: View {
+struct DebtView: View {
     @State private var searchText = ""
-    @State private var showingAddDebtView = false
+    @State private var currentPage = 0
     
-    var body: some View {
-        NavigationView {
-            VStack(alignment: .leading) {
-                // Header
-                Text("Debts")
-                    .font(.largeTitle)
-                    .bold()
-                    .padding(.horizontal)
-                
-                Text("Plan, track and achieve your payoff goal")
-                    .foregroundColor(.gray)
-                    .padding(.horizontal)
-                
-                // Balance by Category (Placeholder for Pie Chart)
-                PieChartView() // Custom component to display chart
-                    .frame(height: 200)
-                    .padding(.horizontal)
-                
-                // Search bar
-                HStack {
-                    TextField("Search", text: $searchText)
-                        .padding(10)
-                        .background(Color(.systemGray5))
-                        .cornerRadius(8)
-                    
-                    Button(action: {
-                        showingAddDebtView.toggle()
-                    }) {
-                        Label("Add", systemImage: "plus.circle.fill")
-                            .font(.title2)
-                            .foregroundColor(.blue)
-                    }
-                    .sheet(isPresented: $showingAddDebtView) {
-                        AddDebtView()
-                    }
-                }
-                .padding(.horizontal)
-                
-                // Debt list
-                ScrollView {
-                    VStack(spacing: 10) {
-                        ForEach(0..<5) { _ in // Replace with your data array
-                            DebtCardView()
-                        }
-                    }
-                    .padding(.horizontal)
-                }
-                
-                Spacer()
-            }
-            .navigationBarHidden(true)
-        }
-    }
-}
-
-// Preview for DebtsView
-struct DebtsView_Previews: PreviewProvider {
-    static var previews: some View {
-        DebtsView()
-    }
-}
-
-// Placeholder for Debt Card
-struct DebtCardView: View {
-    var body: some View {
-        HStack {
-            Circle()
-                .trim(from: 0.0, to: 0.22) // Represents percentage
-                .stroke(Color.blue, lineWidth: 6)
-                .frame(width: 50, height: 50)
-                .overlay(
-                    Text("22.4%")
-                        .font(.caption)
-                        .foregroundColor(.blue)
-                )
-            
-            VStack(alignment: .leading) {
-                Text("Car")
-                    .font(.headline)
-                
-                Text("Balance")
-                    .foregroundColor(.gray)
-                    .font(.subheadline)
-                
-                Text("LKR 448,037.98")
-                    .font(.subheadline)
-                
-                Text("Minimum")
-                    .foregroundColor(.gray)
-                    .font(.subheadline)
-                
-                Text("LKR 80,000.00")
-                    .font(.subheadline)
-                
-                Text("APR 16.00%")
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-            }
-            Spacer()
-        }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(10)
-    }
-}
-
-// Preview for DebtCardView
-struct DebtCardView_Previews: PreviewProvider {
-    static var previews: some View {
-        DebtCardView()
-            .previewLayout(.sizeThatFits)
-            .padding()
-    }
-}
-
-// Placeholder for Pie Chart
-struct PieChartView: View {
-    var body: some View {
-        ZStack {
-            Circle()
-                .fill(Color.blue.opacity(0.3))
-            
-            Text("165,962.19")
-                .font(.largeTitle)
-        }
-    }
-}
-
-// Add Debt View (Add Debt Page)
-struct AddDebtView: View {
-    @Environment(\.presentationMode) var presentationMode
-    @State private var debtType = ""
-    @State private var debtName = ""
-    @State private var lenderName = ""
-    @State private var currentBalance = ""
-    @State private var apr = ""
-    @State private var minimumPaymentCalculation = ""
-    @State private var minimumPayment = ""
-    @State private var paymentFrequency = ""
-    @State private var paymentDueDate = Date()
-    @State private var addReminder = false
-    @State private var notes = ""
+    // Sample data for the pie chart
+    let debts = [
+        DebtCategory(name: "Vehicle Loan", amount: 80000, color: .blue),
+        DebtCategory(name: "Student Loan", amount: 40000, color: .green),
+        DebtCategory(name: "Taxes", amount: 15000, color: .pink),
+        DebtCategory(name: "Business Loan", amount: 20000, color: .purple),
+        DebtCategory(name: "Other", amount: 10962.19, color: .orange)
+    ]
+    
+    // Sample car debts
+    let carDebts = Array(repeating: CarDebt(
+        balance: 448037.98,
+        minimum: 80000.00,
+        apr: 16.00,
+        progress: 0.224
+    ), count: 6)
     
     var body: some View {
         NavigationView {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    // Type of Debt
-                    Text("TYPE OF DEBT")
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                    
-                    TextField("Select the debt type", text: $debtType)
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .cornerRadius(8)
-                    
-                    // Information
-                    Text("INFORMATION")
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                    
-                    TextField("Enter a Name", text: $debtName)
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .cornerRadius(8)
-                    
-                    TextField("Enter a Name", text: $lenderName)
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .cornerRadius(8)
-                    
-                    // Terms
-                    Text("TERMS")
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                    
-                    TextField("LKR 0", text: $currentBalance)
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .cornerRadius(8)
-                    
-                    TextField("0%", text: $apr)
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .cornerRadius(8)
-                    
-                    // Payment Details
-                    Text("PAYMENT DETAILS")
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                    
-                    TextField("Select the minimum payment calculation", text: $minimumPaymentCalculation)
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .cornerRadius(8)
-                    
-                    TextField("LKR 0", text: $minimumPayment)
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .cornerRadius(8)
-                    
-                    TextField("Select the payment frequency", text: $paymentFrequency)
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .cornerRadius(8)
-                    
-                    DatePicker("Select the payment due date", selection: $paymentDueDate, displayedComponents: .date)
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .cornerRadius(8)
-                    
-                    // Reminders
-                    Text("SET PAYMENT REMINDERS")
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                    
-                    Toggle("Add Reminders to Calendar", isOn: $addReminder)
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .cornerRadius(8)
-                    
-                    // Notes
-                    Text("NOTES (OPTIONAL)")
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                    
-                    TextField("", text: $notes)
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .cornerRadius(8)
-                    
-                    // Add Debt Button
-                    Button(action: {
-                        // Action to add debt
-                        presentationMode.wrappedValue.dismiss()
-                    }) {
-                        Text("Add Debt")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue)
-                            .cornerRadius(10)
+                VStack(spacing: 20) {
+                    // Header section
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Debts")
+                            .font(.title)
+                            .fontWeight(.semibold)
+                        Text("Plan, track and achieve your payoff goal")
+                            .foregroundColor(.gray)
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
+                    
+                    // Balance by Category card
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("Balance by Category")
+                            .font(.headline)
+                            .padding(.horizontal)
+                        
+                        TabView(selection: $currentPage) {
+                            PieChartView(debts: debts)
+                                .tag(0)
+                            PieChartView(debts: debts)
+                                .tag(1)
+                        }
+                        .frame(height: 200)
+                        .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
+                    }
+                    .padding(.vertical)
+                    .background(Color.white)
+                    .cornerRadius(12)
+                    // Removed padding to make it full width
+                    .padding(.top)
+                    
+                    // Debts section
+                    VStack(alignment: .leading, spacing: 16) {
+                        HStack {
+                            Text("Debts")
+                                .font(.headline)
+                            Spacer()
+                            Button(action: {}) {
+                                Text("+ Add")
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                    .background(Color.blue)
+                                    .cornerRadius(8)
+                            }
+                        }
+                        
+                        // Search bar
+                        SearchBar(text: $searchText)
+                        
+                        // Debt cards
+                        ForEach(carDebts.indices, id: \.self) { index in
+                            CarDebtCard(debt: carDebts[index])
+                                .padding(.horizontal) // Added padding to debt cards for alignment
+                        }
+                    }
+                    .padding()
+                    .background(Color.white)
+                    .cornerRadius(12)
+                    // Removed padding to make it full width
+                    .padding(.top)
                 }
-                .padding()
             }
-            .navigationBarTitle("Add a Debt", displayMode: .inline)
-            .navigationBarItems(leading: Button("Back") {
-                presentationMode.wrappedValue.dismiss()
-            })
+            .background(Color(.systemGray6))
         }
     }
 }
 
-// Preview for AddDebtView
-struct AddDebtView_Previews: PreviewProvider {
-    static var previews: some View {
-        AddDebtView()
+// Other structs remain unchanged
+
+struct DebtCategory: Identifiable {
+    let id = UUID()
+    let name: String
+    let amount: Double
+    let color: Color
+}
+
+struct CarDebt {
+    let balance: Double
+    let minimum: Double
+    let apr: Double
+    let progress: Double
+}
+
+struct PieChartView: View {
+    let debts: [DebtCategory]
+    
+    var total: Double {
+        debts.reduce(0) { $0 + $1.amount }
+    }
+    
+    var body: some View {
+        HStack(spacing: 32) {
+            // Pie Chart
+            ZStack {
+                ForEach(debts) { debt in
+                    PieSlice(
+                        startAngle: .degrees(startAngle(for: debt)),
+                        endAngle: .degrees(endAngle(for: debt))
+                    )
+                    .fill(debt.color)
+                }
+                Text("$\(String(format: "%.2f", total))")
+                    .font(.system(.title3, design: .rounded))
+                    .fontWeight(.semibold)
+            }
+            .frame(width: 150, height: 150)
+            
+            // Legend
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(debts) { debt in
+                    HStack(spacing: 8) {
+                        Circle()
+                            .fill(debt.color)
+                            .frame(width: 12, height: 12)
+                        Text(debt.name)
+                            .font(.subheadline)
+                    }
+                }
+            }
+        }
+        .padding()
+    }
+    
+    func startAngle(for debt: DebtCategory) -> Double {
+        let index = debts.firstIndex(where: { $0.id == debt.id }) ?? 0
+        let previousTotal = debts[..<index].reduce(0) { $0 + $1.amount }
+        return previousTotal / total * 360
+    }
+    
+    func endAngle(for debt: DebtCategory) -> Double {
+        let index = debts.firstIndex(where: { $0.id == debt.id }) ?? 0
+        let previousTotal = debts[...index].reduce(0) { $0 + $1.amount }
+        return previousTotal / total * 360
     }
 }
+
+struct PieSlice: Shape {
+    let startAngle: Angle
+    let endAngle: Angle
+    
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+        let radius = min(rect.width, rect.height) / 2
+        path.move(to: center)
+        path.addArc(center: center,
+                   radius: radius,
+                   startAngle: Angle(degrees: -90) + startAngle,
+                   endAngle: Angle(degrees: -90) + endAngle,
+                   clockwise: false)
+        path.closeSubpath()
+        return path
+    }
+}
+
+struct SearchBar: View {
+    @Binding var text: String
+    
+    var body: some View {
+        HStack {
+            Image(systemName: "magnifyingglass")
+                .foregroundColor(.gray)
+            TextField("Search", text: $text)
+        }
+        .padding(8)
+        .background(Color(.systemGray6))
+        .cornerRadius(8)
+    }
+}
+
+struct CarDebtCard: View {
+    let debt: CarDebt
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            HStack {
+                Text("Car")
+                    .font(.headline)
+                Spacer()
+            }
+            
+            HStack(spacing: 24) {
+                // Progress Circle
+                ZStack {
+                    Circle()
+                        .stroke(Color.blue.opacity(0.2), lineWidth: 8)
+                    Circle()
+                        .trim(from: 0, to: debt.progress)
+                        .stroke(Color.blue, lineWidth: 8)
+                        .rotationEffect(.degrees(-90))
+                    Text("\(Int(debt.progress * 100))%")
+                        .font(.system(.body, design: .rounded))
+                        .fontWeight(.semibold)
+                }
+                .frame(width: 60, height: 60)
+                
+                // Debt Details
+                VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Balance")
+                            .foregroundColor(.gray)
+                        Text("LKR \(String(format: "%.2f", debt.balance))")
+                            .font(.headline)
+                    }
+                    
+                    HStack(spacing: 24) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Minimum")
+                                .foregroundColor(.gray)
+                            Text("LKR \(String(format: "%.2f", debt.minimum))")
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("APR")
+                                .foregroundColor(.gray)
+                            Text("\(String(format: "%.1f", debt.apr))%")
+                        }
+                    }
+                }
+                Spacer()
+            }
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+    }
+}
+
+struct DebtView_Previews: PreviewProvider {
+    static var previews: some View {
+        DebtView()
+    }
+}
+

@@ -125,7 +125,7 @@ struct SignInView: View {
                     Button("Forgot Password?") {
                         // Handle forgot password
                     }
-                    .foregroundColor(Color("SecondaryColor"))
+                    .foregroundColor(Color("SubColor"))
                 }
                 
                 // Sign In Button
@@ -148,7 +148,7 @@ struct SignInView: View {
                     Button("Sign Up") {
                         // Navigate to Sign Up
                     }
-                    .foregroundColor(Color("SecondaryColor"))
+                    .foregroundColor(Color("SubColor"))
                 }
             }
             .padding()

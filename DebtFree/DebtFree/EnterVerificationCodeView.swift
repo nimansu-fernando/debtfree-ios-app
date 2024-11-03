@@ -47,7 +47,7 @@ struct EnterVerificationCodeView: View {
                     .font(.subheadline)
                 + Text("Resend")
                     .font(.subheadline)
-                    .foregroundColor(Color("SecondaryColor"))
+                    .foregroundColor(Color("SubColor"))
 
                 Spacer()
             }

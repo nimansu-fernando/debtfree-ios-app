@@ -129,10 +129,10 @@ struct SignUpView: View {
                     
                     HStack(spacing: 6) {
                         Text("Privacy Policy")
-                            .foregroundColor(Color("SecondaryColor"))
+                            .foregroundColor(Color("SubColor"))
                         Text("and")
                         Text("Terms of Services")
-                            .foregroundColor(Color("SecondaryColor"))
+                            .foregroundColor(Color("SubColor"))
                     }
                     .font(.footnote)
                 }
