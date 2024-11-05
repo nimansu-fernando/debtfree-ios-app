@@ -41,7 +41,7 @@ struct DebtView: View {
                             .foregroundColor(.gray)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
+                    .padding(.horizontal)
                     
                     // Balance by Category / Debt card with unique headings and indicators
                     VStack(alignment: .leading, spacing: 10) {
