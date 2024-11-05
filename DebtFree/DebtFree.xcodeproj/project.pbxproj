@@ -16,6 +16,7 @@
 		9A32913F2CDA09F600C3FFEF /* DebtDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A32913E2CDA09F600C3FFEF /* DebtDetailsView.swift */; };
 		9A3291412CDA24E300C3FFEF /* PlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A3291402CDA24E300C3FFEF /* PlanView.swift */; };
 		9A3291432CDA2F3300C3FFEF /* BudgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A3291422CDA2F3300C3FFEF /* BudgetView.swift */; };
+		9A5B90422CDA41E90033F368 /* TrackingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A5B90412CDA41E90033F368 /* TrackingView.swift */; };
 		9AF2D7F02CCE182800176584 /* DebtFreeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AF2D7EF2CCE182800176584 /* DebtFreeApp.swift */; };
 		9AF2D7F22CCE182800176584 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AF2D7F12CCE182800176584 /* ContentView.swift */; };
 		9AF2D7F42CCE182900176584 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9AF2D7F32CCE182900176584 /* Assets.xcassets */; };
@@ -58,6 +59,7 @@
 		9A32913E2CDA09F600C3FFEF /* DebtDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebtDetailsView.swift; sourceTree = "<group>"; };
 		9A3291402CDA24E300C3FFEF /* PlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanView.swift; sourceTree = "<group>"; };
 		9A3291422CDA2F3300C3FFEF /* BudgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BudgetView.swift; sourceTree = "<group>"; };
+		9A5B90412CDA41E90033F368 /* TrackingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackingView.swift; sourceTree = "<group>"; };
 		9AF2D7EC2CCE182800176584 /* DebtFree.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DebtFree.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9AF2D7EF2CCE182800176584 /* DebtFreeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebtFreeApp.swift; sourceTree = "<group>"; };
 		9AF2D7F12CCE182800176584 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -139,6 +141,7 @@
 				9A32913E2CDA09F600C3FFEF /* DebtDetailsView.swift */,
 				9A3291402CDA24E300C3FFEF /* PlanView.swift */,
 				9A3291422CDA2F3300C3FFEF /* BudgetView.swift */,
+				9A5B90412CDA41E90033F368 /* TrackingView.swift */,
 				9AF2D7F32CCE182900176584 /* Assets.xcassets */,
 				9AF2D7F82CCE182900176584 /* Persistence.swift */,
 				9AF2D7FA2CCE182900176584 /* DebtFree.xcdatamodeld */,
@@ -309,6 +312,7 @@
 				9A1C85782CD5FD850049953D /* EnterVerificationCodeView.swift in Sources */,
 				9A3291432CDA2F3300C3FFEF /* BudgetView.swift in Sources */,
 				9AF2D7F22CCE182800176584 /* ContentView.swift in Sources */,
+				9A5B90422CDA41E90033F368 /* TrackingView.swift in Sources */,
 				9AF2D8252CCE231C00176584 /* SignUpView.swift in Sources */,
 				9AF2D7FC2CCE182900176584 /* DebtFree.xcdatamodeld in Sources */,
 				9A1C85822CD609C70049953D /* AddDebtView.swift in Sources */,

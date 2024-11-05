@@ -37,7 +37,9 @@ struct PlanView: View {
                             leftLabel: "Next Debt",
                             leftValue: "1 Month 5 Days",
                             rightLabel: "All Debts",
-                            rightValue: "5 Years 10 Months"
+                            rightValue: "5 Years 10 Months",
+                            strokeColor: Color("Color3"),
+                            strokeWidth: 5
                         )
                         
                         // Interest Card
@@ -48,7 +50,9 @@ struct PlanView: View {
                             leftLabel: "Next 30 Days",
                             leftValue: "LKR 10,000",
                             rightLabel: "Total",
-                            rightValue: "LKR 126,000"
+                            rightValue: "LKR 126,000",
+                            strokeColor: Color("Color4"),
+                            strokeWidth: 5
                         )
                         
                         // Payments Card
@@ -59,7 +63,9 @@ struct PlanView: View {
                             leftLabel: "Next 30 Days",
                             leftValue: "LKR 156,000",
                             rightLabel: "Total",
-                            rightValue: "LKR 105,562,000"
+                            rightValue: "LKR 105,562,000",
+                            strokeColor: Color("Color5"),
+                            strokeWidth: 5
                         )
                     }
                     
@@ -122,6 +128,8 @@ struct SummaryCard: View {
     let leftValue: String
     let rightLabel: String
     let rightValue: String
+    let strokeColor: Color // Add this property to define the stroke color
+    let strokeWidth: CGFloat // Add this property to define the stroke width
     
     var body: some View {
         VStack(spacing: 16) {
@@ -156,6 +164,10 @@ struct SummaryCard: View {
         }
         .padding()
         .background(Color.white)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(strokeColor, lineWidth: strokeWidth) // Add the stroke
+        )
         .cornerRadius(12)
         .padding(.horizontal)
     }

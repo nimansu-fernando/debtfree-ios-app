@@ -29,8 +29,8 @@ struct BudgetView: View {
                 // Header
                 VStack(alignment: .leading, spacing: 0) {
                     Text("Budget")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
+                        .font(.title)
+                        .fontWeight(.semibold)
                     Text("Manage your income and expenses for debt repayment")
                         .foregroundColor(.gray)
                 }
@@ -40,7 +40,7 @@ struct BudgetView: View {
                 // Income Distribution Overview
                 VStack(alignment: .leading, spacing: 16) {
                     Text("Income Distribution Overview")
-                        .font(.title2)
+                        .font(.headline)
                         .fontWeight(.semibold)
                     
                     HStack(spacing: 32) {
@@ -148,7 +148,7 @@ struct CategorySection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text(title)
-                .font(.title2)
+                .font(.headline)
                 .fontWeight(.semibold)
             
             VStack(spacing: 16) {
