@@ -13,7 +13,7 @@ struct DebtView: View {
     
     // Sample data for the pie chart
     let debts = [
-        DebtCategory(name: "Vehicle Loan", amount: 80000, color: .blue),
+        DebtCategory(name: "Vehicle Loan", amount: 8000, color: .blue),
         DebtCategory(name: "Student Loan", amount: 40000, color: .green),
         DebtCategory(name: "Taxes", amount: 15000, color: .pink),
         DebtCategory(name: "Business Loan", amount: 20000, color: .purple),
@@ -23,7 +23,7 @@ struct DebtView: View {
     // Sample car debts
     let carDebts = Array(repeating: CarDebt(
         balance: 448037.98,
-        minimum: 80000.00,
+        minimum: 800000,
         apr: 16.00,
         progress: 0.224
     ), count: 6)
@@ -31,7 +31,7 @@ struct DebtView: View {
     var body: some View {
         NavigationView {
             ScrollView {
-                VStack(spacing: 20) {
+                VStack(spacing: 0) {
                     // Header section
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Debts")
@@ -43,9 +43,9 @@ struct DebtView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding()
                     
-                    // Balance by Category card
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("Balance by Category")
+                    // Balance by Category / Debt card with unique headings and indicators
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(currentPage == 0 ? "Balance by Category" : "Balance by Debt")
                             .font(.headline)
                             .padding(.horizontal)
                         
@@ -55,14 +55,28 @@ struct DebtView: View {
                             PieChartView(debts: debts)
                                 .tag(1)
                         }
-                        .frame(height: 200)
-                        .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
+                        .frame(height: 170)
+                        .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+                        
+                        // Custom indicator circles
+                        HStack {
+                            ForEach(0..<2) { index in
+                                Circle()
+                                    .fill(currentPage == index ? Color.blue : Color.gray)
+                                    .frame(width: 8, height: 8)
+                            }
+                        }
+                        .padding(.top, 8)
+                        .frame(maxWidth: .infinity, alignment: .center)
                     }
                     .padding(.vertical)
                     .background(Color.white)
-                    .cornerRadius(12)
-                    // Removed padding to make it full width
+                    .mask(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .padding(.bottom, -12) // Extend the mask to include the full height
+                    )
                     .padding(.top)
+
                     
                     // Debts section
                     VStack(alignment: .leading, spacing: 16) {
@@ -75,8 +89,8 @@ struct DebtView: View {
                                     .foregroundColor(.white)
                                     .padding(.horizontal, 12)
                                     .padding(.vertical, 6)
-                                    .background(Color.blue)
-                                    .cornerRadius(8)
+                                    .background(Color("MainColor"))
+                                    .cornerRadius(25)
                             }
                         }
                         
@@ -86,13 +100,12 @@ struct DebtView: View {
                         // Debt cards
                         ForEach(carDebts.indices, id: \.self) { index in
                             CarDebtCard(debt: carDebts[index])
-                                .padding(.horizontal) // Added padding to debt cards for alignment
+                                .padding(.horizontal)
                         }
                     }
                     .padding()
                     .background(Color.white)
-                    .cornerRadius(12)
-                    // Removed padding to make it full width
+                    //.cornerRadius(12)
                     .padding(.top)
                 }
             }
@@ -101,7 +114,7 @@ struct DebtView: View {
     }
 }
 
-// Other structs remain unchanged
+// Structs remain unchanged
 
 struct DebtCategory: Identifiable {
     let id = UUID()
@@ -230,29 +243,42 @@ struct CarDebtCard: View {
                 }
                 .frame(width: 60, height: 60)
                 
-                // Debt Details
+                /// Debt Details
                 VStack(alignment: .leading, spacing: 8) {
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: 4) {  
                         Text("Balance")
                             .foregroundColor(.gray)
-                        Text("LKR \(String(format: "%.2f", debt.balance))")
-                            .font(.headline)
+                        HStack(alignment: .firstTextBaseline, spacing: 0) {
+                            Text("LKR ")
+                                .font(.caption) // Smaller font for "LKR"
+                            Text(String(format: "%.2f", debt.balance))
+                                .font(.headline) // Regular font for the amount
+                        }
                     }
                     
-                    HStack(spacing: 24) {
+                    HStack {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Minimum")
                                 .foregroundColor(.gray)
-                            Text("LKR \(String(format: "%.2f", debt.minimum))")
+                            HStack(alignment: .firstTextBaseline, spacing: 0) {
+                                Text("LKR ")
+                                    .font(.caption) // Smaller font for "LKR"
+                                Text(String(format: "%.2f", debt.minimum))
+                                    .font(.body) // Regular font for the amount
+                            }
                         }
+                        
+                        Spacer() // Pushes APR section to the right
                         
                         VStack(alignment: .leading, spacing: 4) {
                             Text("APR")
                                 .foregroundColor(.gray)
                             Text("\(String(format: "%.1f", debt.apr))%")
+                                .font(.body)
                         }
                     }
                 }
+
                 Spacer()
             }
         }
@@ -267,4 +293,3 @@ struct DebtView_Previews: PreviewProvider {
         DebtView()
     }
 }
-

@@ -27,7 +27,7 @@ struct EnterVerificationCodeView: View {
                 TextField("Enter Verification Code", text: $code)
                     .multilineTextAlignment(.center)
                     .padding()
-                    .background(RoundedRectangle(cornerRadius: 10).stroke(Color("MainColor"), lineWidth: 1))
+                    .background(RoundedRectangle(cornerRadius: 25).stroke(Color("MainColor"), lineWidth: 1))
                     .keyboardType(.numberPad)
                     .padding(.horizontal, 30)
 
@@ -39,7 +39,7 @@ struct EnterVerificationCodeView: View {
                         .padding()
                         .background(Color("MainColor"))
                         .foregroundColor(.white)
-                        .cornerRadius(10)
+                        .cornerRadius(25)
                 }
                 .padding(.horizontal, 30)
 

@@ -56,7 +56,7 @@ struct SignInView: View {
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(Color.black)
-                    .cornerRadius(10)
+                    .cornerRadius(25)
                 }
                 .padding(.top, 20)
                 
@@ -78,7 +78,7 @@ struct SignInView: View {
                     .background(Color.white)
                     .cornerRadius(10)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 10)
+                        RoundedRectangle(cornerRadius: 25)
                             .stroke(Color.gray, lineWidth: 1)
                     )
                 }
@@ -98,7 +98,7 @@ struct SignInView: View {
                 // Email TextField
                 TextField("Email", text: $email)
                     .padding()
-                    .background(RoundedRectangle(cornerRadius: 10).stroke(Color("MainColor"), lineWidth: 1))
+                    .background(RoundedRectangle(cornerRadius: 25).stroke(Color("MainColor"), lineWidth: 1))
                     .textContentType(.emailAddress)
                     .keyboardType(.emailAddress)
                 
@@ -118,7 +118,7 @@ struct SignInView: View {
                     }
                 }
                 .padding()
-                .background(RoundedRectangle(cornerRadius: 10).stroke(Color("MainColor"), lineWidth: 1))
+                .background(RoundedRectangle(cornerRadius: 25).stroke(Color("MainColor"), lineWidth: 1))
                 
                 HStack {
                     Spacer()
@@ -137,7 +137,7 @@ struct SignInView: View {
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(Color("MainColor"))
-                        .cornerRadius(10)
+                        .cornerRadius(25)
                 }
                 .padding(.horizontal, 30)
                 

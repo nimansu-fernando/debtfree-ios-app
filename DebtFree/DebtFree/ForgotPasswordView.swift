@@ -26,7 +26,7 @@ struct ForgotPasswordView: View {
                 // Email TextField
                 TextField("Email", text: $email)
                     .padding()
-                    .background(RoundedRectangle(cornerRadius: 10).stroke(Color("MainColor"), lineWidth: 1))
+                    .background(RoundedRectangle(cornerRadius: 25).stroke(Color("MainColor"), lineWidth: 1))
                     .textContentType(.emailAddress)
                     .keyboardType(.emailAddress)
                     .padding(.horizontal, 30)
@@ -39,7 +39,7 @@ struct ForgotPasswordView: View {
                         .padding()
                         .background(Color("MainColor"))
                         .foregroundColor(.white)
-                        .cornerRadius(10)
+                        .cornerRadius(25)
                 }
                 .padding(.horizontal, 30)
 

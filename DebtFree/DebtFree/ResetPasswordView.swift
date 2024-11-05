@@ -26,12 +26,12 @@ struct ResetPasswordView: View {
                 
                 SecureField("New Password", text: $newPassword)
                     .padding()
-                    .background(RoundedRectangle(cornerRadius: 10).stroke(Color("MainColor"), lineWidth: 1))
+                    .background(RoundedRectangle(cornerRadius: 25).stroke(Color("MainColor"), lineWidth: 1))
                     .padding(.horizontal, 30)
 
                 SecureField("Confirm Password", text: $confirmPassword)
                     .padding()
-                    .background(RoundedRectangle(cornerRadius: 10).stroke(Color("MainColor"), lineWidth: 1))
+                    .background(RoundedRectangle(cornerRadius: 25).stroke(Color("MainColor"), lineWidth: 1))
                     .padding(.horizontal, 30)
 
                 Button(action: {
@@ -42,7 +42,7 @@ struct ResetPasswordView: View {
                         .padding()
                         .background(Color("MainColor"))
                         .foregroundColor(.white)
-                        .cornerRadius(10)
+                        .cornerRadius(25)
                 }
                 .padding(.horizontal, 30)
 

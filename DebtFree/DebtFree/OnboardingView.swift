@@ -72,7 +72,7 @@ struct OnboardingView: View {
                             .padding()
                             .foregroundColor(.white)
                             .background(Color("MainColor"))
-                            .cornerRadius(15)
+                            .cornerRadius(25)
                     }
                     .padding(.horizontal)
 

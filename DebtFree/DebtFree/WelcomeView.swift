@@ -48,7 +48,7 @@ struct WelcomeView: View {
                             .padding()
                             .background(Color("MainColor"))
                             .foregroundColor(.white)
-                            .cornerRadius(10)
+                            .cornerRadius(25)
                     }
                     
                     Button(action: {
@@ -59,7 +59,7 @@ struct WelcomeView: View {
                             .padding()
                             .background(Color("MainColor"))
                             .foregroundColor(.white)
-                            .cornerRadius(10)
+                            .cornerRadius(25)
                     }
                 }
                 .padding(.horizontal, 30)
