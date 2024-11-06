@@ -17,7 +17,9 @@
 		9A3291412CDA24E300C3FFEF /* PlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A3291402CDA24E300C3FFEF /* PlanView.swift */; };
 		9A3291432CDA2F3300C3FFEF /* BudgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A3291422CDA2F3300C3FFEF /* BudgetView.swift */; };
 		9A5B90422CDA41E90033F368 /* TrackingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A5B90412CDA41E90033F368 /* TrackingView.swift */; };
-		9A8821F42CDB27CF00E66870 /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A8821F32CDB27CF00E66870 /* SplashView.swift */; };
+		9A8821F42CDB27CF00E66870 /* SplashScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A8821F32CDB27CF00E66870 /* SplashScreen.swift */; };
+		9A8821F62CDB41F700E66870 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 9A8821F52CDB41F700E66870 /* GoogleService-Info.plist */; };
+		9A8821F92CDB43AF00E66870 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 9A8821F82CDB43AF00E66870 /* FirebaseAuth */; };
 		9AF2D7F02CCE182800176584 /* DebtFreeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AF2D7EF2CCE182800176584 /* DebtFreeApp.swift */; };
 		9AF2D7F22CCE182800176584 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AF2D7F12CCE182800176584 /* ContentView.swift */; };
 		9AF2D7F42CCE182900176584 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9AF2D7F32CCE182900176584 /* Assets.xcassets */; };
@@ -61,7 +63,9 @@
 		9A3291402CDA24E300C3FFEF /* PlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanView.swift; sourceTree = "<group>"; };
 		9A3291422CDA2F3300C3FFEF /* BudgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BudgetView.swift; sourceTree = "<group>"; };
 		9A5B90412CDA41E90033F368 /* TrackingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackingView.swift; sourceTree = "<group>"; };
-		9A8821F32CDB27CF00E66870 /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
+		9A8821F32CDB27CF00E66870 /* SplashScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashScreen.swift; sourceTree = "<group>"; };
+		9A8821F52CDB41F700E66870 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		9A8821FA2CDB442200E66870 /* DebtFree.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DebtFree.entitlements; sourceTree = "<group>"; };
 		9AF2D7EC2CCE182800176584 /* DebtFree.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DebtFree.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9AF2D7EF2CCE182800176584 /* DebtFreeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebtFreeApp.swift; sourceTree = "<group>"; };
 		9AF2D7F12CCE182800176584 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -85,6 +89,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9A8821F92CDB43AF00E66870 /* FirebaseAuth in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -128,9 +133,11 @@
 		9AF2D7EE2CCE182800176584 /* DebtFree */ = {
 			isa = PBXGroup;
 			children = (
+				9A8821FA2CDB442200E66870 /* DebtFree.entitlements */,
+				9A8821F52CDB41F700E66870 /* GoogleService-Info.plist */,
 				9AF2D7EF2CCE182800176584 /* DebtFreeApp.swift */,
 				9AF2D7F12CCE182800176584 /* ContentView.swift */,
-				9A8821F32CDB27CF00E66870 /* SplashView.swift */,
+				9A8821F32CDB27CF00E66870 /* SplashScreen.swift */,
 				9AF2D81E2CCE191A00176584 /* OnboardingView.swift */,
 				9AF2D8202CCE229E00176584 /* WelcomeView.swift */,
 				9AF2D8242CCE231C00176584 /* SignUpView.swift */,
@@ -194,6 +201,9 @@
 			dependencies = (
 			);
 			name = DebtFree;
+			packageProductDependencies = (
+				9A8821F82CDB43AF00E66870 /* FirebaseAuth */,
+			);
 			productName = DebtFree;
 			productReference = 9AF2D7EC2CCE182800176584 /* DebtFree.app */;
 			productType = "com.apple.product-type.application";
@@ -266,6 +276,9 @@
 				Base,
 			);
 			mainGroup = 9AF2D7E32CCE182800176584;
+			packageReferences = (
+				9A8821F72CDB43AF00E66870 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			productRefGroup = 9AF2D7ED2CCE182800176584 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -284,6 +297,7 @@
 			files = (
 				9AF2D7F72CCE182900176584 /* Preview Assets.xcassets in Resources */,
 				9AF2D7F42CCE182900176584 /* Assets.xcassets in Resources */,
+				9A8821F62CDB41F700E66870 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -321,7 +335,7 @@
 				9A1C85822CD609C70049953D /* AddDebtView.swift in Sources */,
 				9A1C857A2CD5FF740049953D /* ResetPasswordView.swift in Sources */,
 				9A1C85802CD6099C0049953D /* DebtsView.swift in Sources */,
-				9A8821F42CDB27CF00E66870 /* SplashView.swift in Sources */,
+				9A8821F42CDB27CF00E66870 /* SplashScreen.swift in Sources */,
 				9AF2D81F2CCE191A00176584 /* OnboardingView.swift in Sources */,
 				9A1C857C2CD6009E0049953D /* HomeView.swift in Sources */,
 				9A1C85762CD5FB4D0049953D /* ForgotPasswordView.swift in Sources */,
@@ -487,6 +501,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = DebtFree/DebtFree.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"DebtFree/Preview Content\"";
@@ -515,6 +530,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = DebtFree/DebtFree.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"DebtFree/Preview Content\"";
@@ -650,6 +666,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		9A8821F72CDB43AF00E66870 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.4.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		9A8821F82CDB43AF00E66870 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9A8821F72CDB43AF00E66870 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCVersionGroup section */
 		9AF2D7FA2CCE182900176584 /* DebtFree.xcdatamodeld */ = {
