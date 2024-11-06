@@ -6,11 +6,20 @@
 //
 
 import SwiftUI
+import GoogleSignIn
+import FirebaseAuth
+
 
 struct SignUpView: View {
     @State private var email = ""
     @State private var password = ""
     @State private var isPasswordVisible = false
+    @State private var isLoading = false
+    
+    // Alert State Variables
+    @State private var showErrorAlert = false
+    @State private var showSuccessAlert = false
+    @State private var errorMessage = ""
 
     var body: some View {
         NavigationStack { // Use NavigationStack for navigation handling
@@ -139,15 +148,25 @@ struct SignUpView: View {
                     }
                     .foregroundColor(.gray) // Apply the gray color to the entire VStack if desired
                     
-                    // Sign Up Button
-                    Button(action: {}) {
-                        Text("Sign Up")
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color("MainColor"))
-                            .cornerRadius(25)
+                    // Sign Up Button with Loading Indicator
+                    Button(action: signUp) {
+                        if isLoading {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color("MainColor"))
+                                .cornerRadius(25)
+                        } else {
+                            Text("Sign Up")
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color("MainColor"))
+                                .cornerRadius(25)
+                        }
                     }
+                    .disabled(isLoading)
                     .padding(.horizontal, 30)
                     
                     //Spacer()
@@ -167,9 +186,79 @@ struct SignUpView: View {
             }
             .navigationBarHidden(true)
             .navigationBarBackButtonHidden(true)
+            // Error Alert
+            .alert(isPresented: $showErrorAlert) {
+                Alert(
+                    title: Text("Sign Up Failed"),
+                    message: Text(errorMessage),
+                    dismissButton: .default(Text("OK"))
+                )
+            }
+            // Success Alert
+            .alert(isPresented: $showSuccessAlert) {
+                Alert(
+                    title: Text("Success"),
+                    message: Text("Your account has been created successfully."),
+                    dismissButton: .default(Text("OK"), action: {
+                        // Optional: Navigate to SignInView or another view
+                        // For example:
+                        // navigateToSignIn = true
+                    })
+                )
+            }
+        }
+    }
+    
+    // Validation Function
+    func validateFields() -> Bool {
+        if email.isEmpty || password.isEmpty {
+            errorMessage = "Please fill in all fields."
+            showErrorAlert = true
+            return false
+        }
+        
+        // Basic email format check
+        if !email.contains("@") || !email.contains(".") {
+            errorMessage = "Please enter a valid email address."
+            showErrorAlert = true
+            return false
+        }
+        
+        if password.count < 6 {
+            errorMessage = "Password should be at least 6 characters."
+            showErrorAlert = true
+            return false
+        }
+        
+        return true
+    }
+    
+    // Sign-Up Function with Firebase Authentication
+    func signUp() {
+        // Validate fields
+        guard validateFields() else { return }
+        
+        isLoading = true
+        errorMessage = ""
+        
+        Auth.auth().createUser(withEmail: email, password: password) { authResult, error in
+            DispatchQueue.main.async {
+                self.isLoading = false
+                if let error = error {
+                    // Set error message and show error alert
+                    self.errorMessage = error.localizedDescription
+                    self.showErrorAlert = true
+                } else {
+                    // Clear input fields and show success alert
+                    self.email = ""
+                    self.password = ""
+                    self.showSuccessAlert = true
+                }
+            }
         }
     }
 }
+
 
 struct SignUpView_Previews: PreviewProvider {
     static var previews: some View {
