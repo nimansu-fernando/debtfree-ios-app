@@ -17,6 +17,7 @@
 		9A3291412CDA24E300C3FFEF /* PlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A3291402CDA24E300C3FFEF /* PlanView.swift */; };
 		9A3291432CDA2F3300C3FFEF /* BudgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A3291422CDA2F3300C3FFEF /* BudgetView.swift */; };
 		9A5B90422CDA41E90033F368 /* TrackingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A5B90412CDA41E90033F368 /* TrackingView.swift */; };
+		9A8821F42CDB27CF00E66870 /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A8821F32CDB27CF00E66870 /* SplashView.swift */; };
 		9AF2D7F02CCE182800176584 /* DebtFreeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AF2D7EF2CCE182800176584 /* DebtFreeApp.swift */; };
 		9AF2D7F22CCE182800176584 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AF2D7F12CCE182800176584 /* ContentView.swift */; };
 		9AF2D7F42CCE182900176584 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9AF2D7F32CCE182900176584 /* Assets.xcassets */; };
@@ -60,6 +61,7 @@
 		9A3291402CDA24E300C3FFEF /* PlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanView.swift; sourceTree = "<group>"; };
 		9A3291422CDA2F3300C3FFEF /* BudgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BudgetView.swift; sourceTree = "<group>"; };
 		9A5B90412CDA41E90033F368 /* TrackingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackingView.swift; sourceTree = "<group>"; };
+		9A8821F32CDB27CF00E66870 /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
 		9AF2D7EC2CCE182800176584 /* DebtFree.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DebtFree.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9AF2D7EF2CCE182800176584 /* DebtFreeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebtFreeApp.swift; sourceTree = "<group>"; };
 		9AF2D7F12CCE182800176584 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -128,6 +130,7 @@
 			children = (
 				9AF2D7EF2CCE182800176584 /* DebtFreeApp.swift */,
 				9AF2D7F12CCE182800176584 /* ContentView.swift */,
+				9A8821F32CDB27CF00E66870 /* SplashView.swift */,
 				9AF2D81E2CCE191A00176584 /* OnboardingView.swift */,
 				9AF2D8202CCE229E00176584 /* WelcomeView.swift */,
 				9AF2D8242CCE231C00176584 /* SignUpView.swift */,
@@ -318,6 +321,7 @@
 				9A1C85822CD609C70049953D /* AddDebtView.swift in Sources */,
 				9A1C857A2CD5FF740049953D /* ResetPasswordView.swift in Sources */,
 				9A1C85802CD6099C0049953D /* DebtsView.swift in Sources */,
+				9A8821F42CDB27CF00E66870 /* SplashView.swift in Sources */,
 				9AF2D81F2CCE191A00176584 /* OnboardingView.swift in Sources */,
 				9A1C857C2CD6009E0049953D /* HomeView.swift in Sources */,
 				9A1C85762CD5FB4D0049953D /* ForgotPasswordView.swift in Sources */,
