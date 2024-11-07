@@ -18,6 +18,13 @@ struct SignInView: View {
     @State private var alertMessage = ""
     @State private var isSignedIn = false
     @State private var userName = ""
+    
+    // Check if user session is active on view appear
+    init() {
+        if let _ = KeychainHelper.shared.get(forKey: "uid") {
+            _isSignedIn = State(initialValue: true)
+        }
+    }
 
     var body: some View {
         NavigationStack {
@@ -122,14 +129,18 @@ struct SignInView: View {
                     .padding()
                     .background(RoundedRectangle(cornerRadius: 25).stroke(Color("MainColor"), lineWidth: 1))
                     
-                    HStack {
-                        Spacer()
-                        Button("Forgot Password?") {
-                            // Handle forgot password
+                    // Forgot Password Button wrapped in NavigationLink, aligned to the right
+                    NavigationLink(destination: ForgotPasswordView()) {
+                        HStack {
+                            Spacer()  // This spacer pushes the button to the right
+                            Text("Forgot Password?")
+                                .foregroundColor(Color("SubColor"))
+                            //Spacer()  // Optional: Add another spacer if you want to ensure the button stays on the right side
                         }
-                        .foregroundColor(Color("SubColor"))
                     }
-                    
+                    .padding(.top, 10)
+
+
                     // Sign In Button
                     Button(action: {
                         signInUser()
@@ -178,6 +189,7 @@ struct SignInView: View {
             } else if let user = result?.user {
                 // Retrieve the display name or use email as fallback
                 userName = user.displayName ?? user.email ?? "User"
+                KeychainHelper.shared.save(user.uid, forKey: "uid") // Save UID
                 isSignedIn = true
             }
         }
@@ -212,8 +224,9 @@ struct SignInView: View {
                 if let error = error {
                     alertMessage = error.localizedDescription
                     showAlert = true
-                } else {
+                } else if let user = authResult?.user {
                     // Successfully signed in with Google
+                    KeychainHelper.shared.save(user.uid, forKey: "uid") // Save UID
                     isSignedIn = true
                 }
             }

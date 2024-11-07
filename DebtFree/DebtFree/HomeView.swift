@@ -26,8 +26,12 @@ struct HomeView: View {
                     HStack {
                         Image(systemName: "bell")
                             .foregroundColor(.blue)
-                        Image(systemName: "person.circle.fill")
-                            .foregroundColor(.blue)
+                        
+                        // Profile icon wrapped in NavigationLink
+                        NavigationLink(destination: ProfileView()) {
+                            Image(systemName: "person.circle.fill")
+                                .foregroundColor(.blue)
+                        }
                     }
                 }
                 .padding()

@@ -10,7 +10,8 @@ import SwiftUI
 struct DebtView: View {
     @State private var searchText = ""
     @State private var currentPage = 0
-    
+    @State private var isShowingAddDebtView = false // State variable to show AddDebtView
+
     // Sample data for the pie chart
     let debts = [
         DebtCategory(name: "Vehicle Loan", amount: 8000, color: .blue),
@@ -77,14 +78,15 @@ struct DebtView: View {
                     )
                     .padding(.top)
 
-                    
                     // Debts section
                     VStack(alignment: .leading, spacing: 16) {
                         HStack {
                             Text("Debts")
                                 .font(.headline)
                             Spacer()
-                            Button(action: {}) {
+                            Button(action: {
+                                isShowingAddDebtView = true // Show AddDebtView when button is clicked
+                            }) {
                                 Text("+ Add")
                                     .foregroundColor(.white)
                                     .padding(.horizontal, 12)
@@ -105,11 +107,13 @@ struct DebtView: View {
                     }
                     .padding()
                     .background(Color.white)
-                    //.cornerRadius(12)
                     .padding(.top)
                 }
             }
             .background(Color(.systemGray6))
+            .sheet(isPresented: $isShowingAddDebtView) {
+                AddDebtView() // Present AddDebtView in a sheet
+            }
         }
     }
 }
