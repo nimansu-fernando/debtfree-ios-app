@@ -6,22 +6,26 @@
 //
 
 import SwiftUI
+import FirebaseAuth
 
 struct SignInView: View {
     @State private var email = ""
     @State private var password = ""
-    @State private var isPasswordVisible = false // Added for password visibility toggle
+    @State private var isPasswordVisible = false
+    @State private var showAlert = false
+    @State private var alertMessage = ""
+    @State private var isSignedIn = false
+    @State private var userName = ""
 
     var body: some View {
-        NavigationStack { // Wrapping the entire view in a NavigationStack for navigation handling
+        NavigationStack {
             ZStack {
                 VStack(spacing: 0) {
-                    Color("AccentColor1") // Adjust the color name as per your design
+                    Color("AccentColor1")
                         .frame(height: 175)
-                    
                     Color.white
                 }
-                .ignoresSafeArea() // Extends the colors to the edges
+                .ignoresSafeArea()
                 
                 VStack(spacing: 20) {
                     // Logo
@@ -30,7 +34,6 @@ struct SignInView: View {
                         .scaledToFit()
                         .frame(width: 257.62, height: 100)
 
-                    // Title
                     Text("Sign In")
                         .font(.title)
                         .fontWeight(.bold)
@@ -39,16 +42,14 @@ struct SignInView: View {
                     Text("Welcome to DebtFree!")
                         .font(.subheadline)
                         .foregroundColor(.gray)
-                        .padding(.top, -15) // Adjusted spacing to match the SignUpView
+                        .padding(.top, -15)
 
-                    // Continue with Apple
-                    Button(action: {
-                        // Apple Sign In
-                    }) {
+                    // Apple Sign-In (Placeholder)
+                    Button(action: {}) {
                         HStack {
                             Image("apple-logo")
                                 .resizable()
-                                .aspectRatio(contentMode: .fit) // Maintain aspect ratio
+                                .aspectRatio(contentMode: .fit)
                                 .frame(width: 20, height: 20)
                             Text("Continue with Apple")
                                 .foregroundColor(.white)
@@ -61,14 +62,12 @@ struct SignInView: View {
                     }
                     .padding(.top, 20)
                     
-                    // Continue with Google
-                    Button(action: {
-                        // Handle Google Sign In
-                    }) {
+                    // Google Sign-In (Placeholder)
+                    Button(action: {}) {
                         HStack {
                             Image("google-logo")
                                 .resizable()
-                                .aspectRatio(contentMode: .fit) // Maintain aspect ratio
+                                .aspectRatio(contentMode: .fit)
                                 .frame(width: 20, height: 20)
                             Text("Continue with Google")
                                 .foregroundColor(.black)
@@ -96,21 +95,19 @@ struct SignInView: View {
                             .foregroundColor(.gray)
                     }
                     
-                    // Email TextField
                     TextField("Email", text: $email)
                         .padding()
                         .background(RoundedRectangle(cornerRadius: 25).stroke(Color("MainColor"), lineWidth: 1))
                         .textContentType(.emailAddress)
                         .keyboardType(.emailAddress)
                     
-                    // Password TextField
+                    // Password Field
                     HStack {
                         if isPasswordVisible {
                             TextField("Password", text: $password)
                         } else {
                             SecureField("Password", text: $password)
                         }
-                        
                         Button(action: {
                             isPasswordVisible.toggle()
                         }) {
@@ -131,7 +128,7 @@ struct SignInView: View {
                     
                     // Sign In Button
                     Button(action: {
-                        // Handle Sign In
+                        signInUser()
                     }) {
                         Text("Sign In")
                             .foregroundColor(.white)
@@ -144,26 +141,45 @@ struct SignInView: View {
                     
                     Spacer()
                     
-                    // Text for "Don’t have an account?"
                     HStack {
                         Text("Don’t have an account?")
                         
-                        // NavigationLink only for the "Sign Up" button
                         NavigationLink(destination: SignUpView()) {
                             Text("Sign Up")
                                 .foregroundColor(Color("SubColor"))
                                 .bold()
                         }
                     }
-                    .padding(.top, 20) // Optionally add padding to adjust placement
+                    .padding(.top, 20)
                 }
                 .padding()
             }
             .navigationBarHidden(true)
             .navigationBarBackButtonHidden(true)
+            .alert(isPresented: $showAlert) {
+                Alert(title: Text("Error"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
+            }
+            .navigationDestination(isPresented: $isSignedIn) {
+                CustomTabBar()
+            }
+        }
+    }
+    
+    // Firebase sign-in logic
+    private func signInUser() {
+        Auth.auth().signIn(withEmail: email, password: password) { result, error in
+            if let error = error {
+                alertMessage = error.localizedDescription
+                showAlert = true
+            } else if let user = result?.user {
+                // Retrieve the display name or use email as fallback
+                userName = user.displayName ?? user.email ?? "User"
+                isSignedIn = true
+            }
         }
     }
 }
+
 
 struct SignInView_Previews: PreviewProvider {
     static var previews: some View {

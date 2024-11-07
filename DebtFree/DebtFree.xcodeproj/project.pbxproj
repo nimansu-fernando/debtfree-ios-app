@@ -23,6 +23,7 @@
 		9A827AE72CDB832500645F0F /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 9A827AE62CDB832500645F0F /* GoogleSignInSwift */; };
 		9A8821F42CDB27CF00E66870 /* SplashScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A8821F32CDB27CF00E66870 /* SplashScreen.swift */; };
 		9A8821F92CDB43AF00E66870 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 9A8821F82CDB43AF00E66870 /* FirebaseAuth */; };
+		9ABB2F972CDC8ACF0000AC3C /* CustomTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ABB2F962CDC8ACF0000AC3C /* CustomTabBar.swift */; };
 		9AF2D7F02CCE182800176584 /* DebtFreeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AF2D7EF2CCE182800176584 /* DebtFreeApp.swift */; };
 		9AF2D7F22CCE182800176584 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AF2D7F12CCE182800176584 /* ContentView.swift */; };
 		9AF2D7F42CCE182900176584 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9AF2D7F32CCE182900176584 /* Assets.xcassets */; };
@@ -71,6 +72,7 @@
 		9A827AE12CDB812000645F0F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		9A8821F32CDB27CF00E66870 /* SplashScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashScreen.swift; sourceTree = "<group>"; };
 		9A8821FA2CDB442200E66870 /* DebtFree.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DebtFree.entitlements; sourceTree = "<group>"; };
+		9ABB2F962CDC8ACF0000AC3C /* CustomTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTabBar.swift; sourceTree = "<group>"; };
 		9AF2D7EC2CCE182800176584 /* DebtFree.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DebtFree.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9AF2D7EF2CCE182800176584 /* DebtFreeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebtFreeApp.swift; sourceTree = "<group>"; };
 		9AF2D7F12CCE182800176584 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -155,6 +157,7 @@
 				9A1C85772CD5FD850049953D /* EnterVerificationCodeView.swift */,
 				9A1C85792CD5FF740049953D /* ResetPasswordView.swift */,
 				9A1C857B2CD6009E0049953D /* HomeView.swift */,
+				9ABB2F962CDC8ACF0000AC3C /* CustomTabBar.swift */,
 				9A1C857F2CD6099C0049953D /* DebtsView.swift */,
 				9A1C85812CD609C70049953D /* AddDebtView.swift */,
 				9A32913E2CDA09F600C3FFEF /* DebtDetailsView.swift */,
@@ -350,6 +353,7 @@
 				9A1C85802CD6099C0049953D /* DebtsView.swift in Sources */,
 				9A8821F42CDB27CF00E66870 /* SplashScreen.swift in Sources */,
 				9AF2D81F2CCE191A00176584 /* OnboardingView.swift in Sources */,
+				9ABB2F972CDC8ACF0000AC3C /* CustomTabBar.swift in Sources */,
 				9A1C857C2CD6009E0049953D /* HomeView.swift in Sources */,
 				9A1C85762CD5FB4D0049953D /* ForgotPasswordView.swift in Sources */,
 				9AF2D7F02CCE182800176584 /* DebtFreeApp.swift in Sources */,
