@@ -8,7 +8,8 @@
 import SwiftUI
 import GoogleSignIn
 import FirebaseAuth
-
+import AuthenticationServices
+import FirebaseCore
 
 struct SignUpView: View {
     @State private var email = ""
@@ -16,13 +17,14 @@ struct SignUpView: View {
     @State private var isPasswordVisible = false
     @State private var isLoading = false
     
-    // Alert State Variables
+    // Alert and Navigation State Variables
     @State private var showErrorAlert = false
     @State private var showSuccessAlert = false
+    @State private var navigateToSignIn = false
     @State private var errorMessage = ""
 
     var body: some View {
-        NavigationStack { // Use NavigationStack for navigation handling
+        NavigationStack {
             ZStack {
                 VStack(spacing: 0) {
                     Color("AccentColor1")
@@ -33,7 +35,6 @@ struct SignUpView: View {
                 .ignoresSafeArea() // Extends the colors to the edges
                 
                 VStack(spacing: 20) {
-                    
                     // Logo
                     Image("DebtFreeLogo2")
                         .resizable()
@@ -56,7 +57,7 @@ struct SignUpView: View {
                         HStack {
                             Image("apple-logo")
                                 .resizable()
-                                .aspectRatio(contentMode: .fit) // Maintain aspect ratio
+                                .aspectRatio(contentMode: .fit)
                                 .frame(width: 20, height: 20)
                             Text("Continue with Apple")
                                 .foregroundColor(.white)
@@ -70,7 +71,9 @@ struct SignUpView: View {
                     .padding(.top, 20)
                     
                     // Continue with Google
-                    Button(action: {}) {
+                    Button(action: {
+                        signUpWithGoogle()
+                    }) {
                         HStack {
                             Image("google-logo")
                                 .resizable()
@@ -132,7 +135,7 @@ struct SignUpView: View {
                     .background(RoundedRectangle(cornerRadius: 25).stroke(Color("MainColor"), lineWidth: 1))
                     
                     // Terms and Privacy Policy
-                    VStack(spacing: 4) { // Adjust spacing as needed to maintain desired line spacing
+                    VStack(spacing: 4) {
                         Text("By creating an account, you agree to our")
                             .font(.footnote)
                             .multilineTextAlignment(.center)
@@ -146,7 +149,7 @@ struct SignUpView: View {
                         }
                         .font(.footnote)
                     }
-                    .foregroundColor(.gray) // Apply the gray color to the entire VStack if desired
+                    .foregroundColor(.gray)
                     
                     // Sign Up Button with Loading Indicator
                     Button(action: signUp) {
@@ -169,24 +172,27 @@ struct SignUpView: View {
                     .disabled(isLoading)
                     .padding(.horizontal, 30)
                     
-                    //Spacer()
-                    
                     HStack {
                         Text("Have an account?")
-                        
-                        // NavigationLink for Sign In button
-                        NavigationLink(destination: SignInView()) { // Destination is SignInView
+                        NavigationLink(destination: SignInView()) {
                             Text("Sign In")
                                 .foregroundColor(Color("SubColor"))
                                 .bold()
                         }
+                    }
+                    
+                    // NavigationLink for successful sign-up navigation
+                    NavigationLink(
+                        destination: SignInView(),
+                        isActive: $navigateToSignIn
+                    ) {
+                        EmptyView()
                     }
                 }
                 .padding()
             }
             .navigationBarHidden(true)
             .navigationBarBackButtonHidden(true)
-            // Error Alert
             .alert(isPresented: $showErrorAlert) {
                 Alert(
                     title: Text("Sign Up Failed"),
@@ -194,22 +200,19 @@ struct SignUpView: View {
                     dismissButton: .default(Text("OK"))
                 )
             }
-            // Success Alert
             .alert(isPresented: $showSuccessAlert) {
                 Alert(
                     title: Text("Success"),
                     message: Text("Your account has been created successfully."),
-                    dismissButton: .default(Text("OK"), action: {
-                        // Optional: Navigate to SignInView or another view
-                        // For example:
-                        // navigateToSignIn = true
-                    })
+                    dismissButton: .default(Text("OK")) {
+                        // Navigate to SignInView on alert dismissal
+                        navigateToSignIn = true
+                    }
                 )
             }
         }
     }
     
-    // Validation Function
     func validateFields() -> Bool {
         if email.isEmpty || password.isEmpty {
             errorMessage = "Please fill in all fields."
@@ -217,7 +220,6 @@ struct SignUpView: View {
             return false
         }
         
-        // Basic email format check
         if !email.contains("@") || !email.contains(".") {
             errorMessage = "Please enter a valid email address."
             showErrorAlert = true
@@ -233,9 +235,7 @@ struct SignUpView: View {
         return true
     }
     
-    // Sign-Up Function with Firebase Authentication
     func signUp() {
-        // Validate fields
         guard validateFields() else { return }
         
         isLoading = true
@@ -245,11 +245,9 @@ struct SignUpView: View {
             DispatchQueue.main.async {
                 self.isLoading = false
                 if let error = error {
-                    // Set error message and show error alert
                     self.errorMessage = error.localizedDescription
                     self.showErrorAlert = true
                 } else {
-                    // Clear input fields and show success alert
                     self.email = ""
                     self.password = ""
                     self.showSuccessAlert = true
@@ -257,8 +255,63 @@ struct SignUpView: View {
             }
         }
     }
+    
+    func signUpWithGoogle() {
+        isLoading = true
+        
+        guard let clientID = FirebaseApp.app()?.options.clientID else {
+            errorMessage = "Google Sign In configuration error"
+            showErrorAlert = true
+            return
+        }
+        
+        let config = GIDConfiguration(clientID: clientID)
+        GIDSignIn.sharedInstance.configuration = config
+        
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let rootViewController = windowScene.windows.first?.rootViewController else {
+            errorMessage = "Cannot find root view controller"
+            showErrorAlert = true
+            return
+        }
+        
+        GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController) { result, error in
+            self.isLoading = false
+            
+            if let error = error {
+                self.errorMessage = error.localizedDescription
+                self.showErrorAlert = true
+                return
+            }
+            
+            guard let user = result?.user,
+                  let idToken = user.idToken?.tokenString else {
+                self.errorMessage = "Cannot get user data from Google."
+                self.showErrorAlert = true
+                return
+            }
+            
+            let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: user.accessToken.tokenString)
+            
+            Auth.auth().signIn(with: credential) { authResult, error in
+                if let error = error {
+                    self.errorMessage = error.localizedDescription
+                    self.showErrorAlert = true
+                    return
+                }
+                
+                guard let user = authResult?.user else {
+                    self.errorMessage = "Could not retrieve user data."
+                    self.showErrorAlert = true
+                    return
+                }
+                
+                // Account created successfully with Google
+                self.showSuccessAlert = true
+            }
+        }
+    }
 }
-
 
 struct SignUpView_Previews: PreviewProvider {
     static var previews: some View {

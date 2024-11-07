@@ -6,7 +6,9 @@
 //
 
 import SwiftUI
+import FirebaseCore
 import FirebaseAuth
+import GoogleSignIn
 
 struct SignInView: View {
     @State private var email = ""
@@ -62,8 +64,10 @@ struct SignInView: View {
                     }
                     .padding(.top, 20)
                     
-                    // Google Sign-In (Placeholder)
-                    Button(action: {}) {
+                    // Google Sign-In Button
+                    Button(action: {
+                        signInWithGoogle()
+                    }) {
                         HStack {
                             Image("google-logo")
                                 .resizable()
@@ -82,7 +86,7 @@ struct SignInView: View {
                                 .stroke(Color.gray, lineWidth: 1)
                         )
                     }
-                    
+
                     // Divider
                     HStack {
                         Rectangle()
@@ -178,8 +182,51 @@ struct SignInView: View {
             }
         }
     }
-}
 
+    // Google Sign-In logic
+    private func signInWithGoogle() {
+        guard let clientID = FirebaseApp.app()?.options.clientID else { return }
+        
+        let config = GIDConfiguration(clientID: clientID)
+        GIDSignIn.sharedInstance.configuration = config
+        
+        guard let rootViewController = UIApplication.shared.windows.first?.rootViewController else { return }
+        
+        GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController) { result, error in
+            if let error = error {
+                alertMessage = error.localizedDescription
+                showAlert = true
+                return
+            }
+            
+            guard let user = result?.user,
+                  let idToken = user.idToken?.tokenString else {
+                alertMessage = "Google sign-in failed."
+                showAlert = true
+                return
+            }
+            
+            let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: user.accessToken.tokenString)
+            
+            Auth.auth().signIn(with: credential) { authResult, error in
+                if let error = error {
+                    alertMessage = error.localizedDescription
+                    showAlert = true
+                } else {
+                    // Successfully signed in with Google
+                    isSignedIn = true
+                }
+            }
+        }
+    }
+
+    // Helper function to get the root view controller for Google Sign-In
+    private func getRootViewController() -> UIViewController {
+        let scene = UIApplication.shared.connectedScenes.first
+        let windowScene = scene as? UIWindowScene
+        return windowScene?.windows.first?.rootViewController ?? UIViewController()
+    }
+}
 
 struct SignInView_Previews: PreviewProvider {
     static var previews: some View {

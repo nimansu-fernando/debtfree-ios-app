@@ -21,9 +21,9 @@ struct DebtFreeApp: App {
             //ContentView()
                 //.environment(\.managedObjectContext, persistenceController.container.viewContext)
             //OnboardingView()
-            //SignUpView()
+            SignUpView()
             //SignInView()
-            CustomTabBar()
+            //CustomTabBar()
         }
     }
 }
