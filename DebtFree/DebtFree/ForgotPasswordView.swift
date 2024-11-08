@@ -13,7 +13,7 @@ struct ForgotPasswordView: View {
     @State private var errorMessage: String? = nil
     @State private var showAlert: Bool = false
     @State private var alertMessage: String = ""
-    @State private var isSuccess: Bool = false
+    @State private var alertTitle: String = "" // Changed to alertTitle instead of isSuccess
     
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode> // To go back to SignInView
 
@@ -71,10 +71,10 @@ struct ForgotPasswordView: View {
 
             .alert(isPresented: $showAlert) {
                 Alert(
-                    title: Text(isSuccess ? "Success" : "Error"),
+                    title: Text(alertTitle), // Using alertTitle here
                     message: Text(alertMessage),
                     dismissButton: .default(Text("OK"), action: {
-                        if isSuccess {
+                        if alertTitle == "Password Reset Complete" {
                             presentationMode.wrappedValue.dismiss() // Navigate back to SignInView
                         }
                     })
@@ -96,14 +96,14 @@ struct ForgotPasswordView: View {
                 return
             }
             
-            showError("Password reset email sent successfully", isSuccess: true)
+            showError("If this email is associated with an account, you will receive a password reset link shortly.", isSuccess: true)
         }
     }
 
     // Show error or success message
     private func showError(_ message: String, isSuccess: Bool = false) {
         alertMessage = message
-        self.isSuccess = isSuccess
+        alertTitle = isSuccess ? "Password Reset Complete" : "Error"
         showAlert = true // Show the alert
     }
 }
@@ -113,3 +113,4 @@ struct ForgotPasswordView_Previews: PreviewProvider {
         ForgotPasswordView()
     }
 }
+

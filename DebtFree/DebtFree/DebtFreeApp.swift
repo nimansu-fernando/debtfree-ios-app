@@ -11,6 +11,35 @@ import Firebase
 @main
 struct DebtFreeApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+    let persistenceController = PersistenceController.shared
+
+    // State to track if user is signed in
+    @State private var isSignedIn = false
+
+    // Check if user session is active on view appear
+    init() {
+        if let _ = KeychainHelper.shared.get(forKey: "uid") {
+            _isSignedIn = State(initialValue: true)
+        }
+    }
+
+    var body: some Scene {
+        WindowGroup {
+            if isSignedIn {
+                CustomTabBar()
+            } else {
+                SignInView()
+            }
+        }
+    }
+}
+
+/*import SwiftUI
+import Firebase
+
+@main
+struct DebtFreeApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
 
     let persistenceController = PersistenceController.shared
     /*init() {
@@ -26,4 +55,4 @@ struct DebtFreeApp: App {
             //CustomTabBar()
         }
     }
-}
+}*/
