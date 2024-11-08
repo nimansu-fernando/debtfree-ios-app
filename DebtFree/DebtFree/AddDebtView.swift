@@ -6,17 +6,25 @@
 //
 
 import SwiftUI
+import CoreData
+import FirebaseAuth
 
 struct AddDebtView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.managedObjectContext) private var viewContext
+    
+    // Firebase user ID
+    @State private var userID: String = ""
+    
+    // Debt properties
     @State private var showDebtTypeSheet = false
     @State private var debtType: String = ""
     @State private var debtName: String = ""
     @State private var lenderName: String = ""
-    @State private var currentBalance: String = "0"
-    @State private var apr: String = "0"
+    @State private var currentBalance: String = ""
+    @State private var apr: String = ""
     @State private var minimumPaymentCalc: String = ""
-    @State private var minimumPayment: String = "0"
+    @State private var minimumPayment: String = ""
     @State private var paymentFrequency: String = ""
     @State private var nextPaymentDate: Date = Date()
     @State private var addReminders: Bool = false
@@ -133,7 +141,7 @@ struct AddDebtView: View {
                                     Button("Percentage of Balance") { minimumPaymentCalc = "Percentage of Balance" }
                                 } label: {
                                     HStack {
-                                        Text(minimumPaymentCalc.isEmpty ? "Select the minimum payment calculation" : minimumPaymentCalc)
+                                        Text(minimumPaymentCalc.isEmpty ? "Select minimum payment calculation" : minimumPaymentCalc)
                                             .foregroundColor(minimumPaymentCalc.isEmpty ? .gray : .black)
                                         Spacer()
                                         Image(systemName: "chevron.down")
@@ -222,7 +230,8 @@ struct AddDebtView: View {
                     
                     // Add Debt Button
                     Button(action: {
-                        // Add debt logic here
+                        addDebt()
+                        fetchAndPrintAllDebts()
                         dismiss()
                     }) {
                         Text("Add Debt")
@@ -245,6 +254,74 @@ struct AddDebtView: View {
                 }
                 .foregroundColor(Color("MainColor"))
             )
+        }
+        .onAppear {
+            if let user = Auth.auth().currentUser {
+                self.userID = user.uid
+            }
+        }
+    }
+    
+    // Function to add debt to Core Data
+    private func addDebt() {
+        let newDebt = Debt(context: viewContext)
+        newDebt.userID = userID
+        // Unwrap optional strings before saving to Core Data
+        newDebt.debtType = debtType.isEmpty ? nil : debtType
+        newDebt.debtName = debtName.isEmpty ? nil : debtName
+        newDebt.lenderName = lenderName.isEmpty ? nil : lenderName
+        newDebt.currentBalance = Double(currentBalance) ?? 0.0
+        newDebt.apr = Double(apr) ?? 0.0
+        // Ensure minimumPaymentCalc is not optional when saving
+        newDebt.minimumPaymentCalc = minimumPaymentCalc.isEmpty ? nil : minimumPaymentCalc
+        newDebt.minimumPayment = Double(minimumPayment) ?? 0.0
+        newDebt.paymentFrequency = paymentFrequency.isEmpty ? nil : paymentFrequency
+        newDebt.nextPaymentDate = nextPaymentDate
+        newDebt.addReminders = addReminders
+        newDebt.notes = notes.isEmpty ? nil : notes
+        newDebt.paidAmount = 0.0
+    
+
+        do {
+            try viewContext.save()
+            print("Debt saved successfully.")
+        } catch {
+            print("Failed to save debt: \(error.localizedDescription)")
+            print("Debugging values: userID: \(userID), debtType: \(debtType), debtName: \(debtName), lenderName: \(lenderName), currentBalance: \(currentBalance), apr: \(apr), minimumPayment: \(minimumPayment), paymentFrequency: \(paymentFrequency)")
+        }
+        
+        
+        let urls = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask)
+        if let applicationSupportURL = urls.first?.appendingPathComponent("Application Support") {
+            print("Database URL: \(applicationSupportURL)")
+        }
+    }
+    
+    // Helper function to fetch and print all saved Debt records
+    private func fetchAndPrintAllDebts() {
+        let fetchRequest: NSFetchRequest<Debt> = Debt.fetchRequest()
+        
+        do {
+            let debts = try viewContext.fetch(fetchRequest)
+            print("Fetched \(debts.count) Debt records:")
+            for debt in debts {
+                print("----")
+                print("userID: \(debt.userID ?? "N/A")")
+                print("debtType: \(debt.debtType ?? "N/A")")
+                print("debtName: \(debt.debtName ?? "N/A")")
+                print("lenderName: \(debt.lenderName ?? "N/A")")
+                print("currentBalance: \(debt.currentBalance)")
+                print("apr: \(debt.apr)")
+                print("minimumPaymentCalc: \(String(describing: debt.minimumPaymentCalc))")
+                print("minimumPayment: \(debt.minimumPayment)")
+                print("paymentFrequency: \(debt.paymentFrequency ?? "N/A")")
+                print("nextPaymentDate: \(debt.nextPaymentDate ?? Date())")
+                print("addReminders: \(debt.addReminders)")
+                print("notes: \(debt.notes ?? "N/A")")
+                print("paidAmount: \(debt.paidAmount)")
+            }
+        } catch {
+            print("Failed to fetch debts: \(error.localizedDescription)")
         }
     }
 }

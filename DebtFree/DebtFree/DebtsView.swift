@@ -6,14 +6,32 @@
 //
 
 import SwiftUI
+import CoreData
 
 struct DebtView: View {
     @State private var searchText = ""
     @State private var currentPage = 0
     @State private var isShowingAddDebtView = false // State variable to show AddDebtView
+    
+    // Fetch debts from Core Data
+    @FetchRequest(
+        entity: Debt.entity(),
+        sortDescriptors: [NSSortDescriptor(keyPath: \Debt.debtName, ascending: true)]
+    ) var debts: FetchedResults<Debt>
+    
+    // Filtered debts based on search text
+    var filteredDebts: [Debt] {
+        if searchText.isEmpty {
+            return Array(debts)
+        } else {
+            return debts.filter { debt in
+                debt.debtName?.localizedCaseInsensitiveContains(searchText) ?? false
+            }
+        }
+    }
 
     // Sample data for the pie chart
-    let debts = [
+    let chartDebts = [
         DebtCategory(name: "Vehicle Loan", amount: 8000, color: .blue),
         DebtCategory(name: "Student Loan", amount: 40000, color: .green),
         DebtCategory(name: "Taxes", amount: 15000, color: .pink),
@@ -22,7 +40,8 @@ struct DebtView: View {
     ]
     
     // Sample car debts
-    let carDebts = Array(repeating: CarDebt(
+    let sampleDebts = Array(repeating: DebtList(
+        name: "CAR",
         balance: 448037.98,
         minimum: 800000,
         apr: 16.00,
@@ -51,9 +70,9 @@ struct DebtView: View {
                             .padding(.horizontal)
                         
                         TabView(selection: $currentPage) {
-                            PieChartView(debts: debts)
+                            PieChartView(debts: chartDebts)
                                 .tag(0)
-                            PieChartView(debts: debts)
+                            PieChartView(debts: chartDebts)
                                 .tag(1)
                         }
                         .frame(height: 170)
@@ -100,9 +119,19 @@ struct DebtView: View {
                         SearchBar(text: $searchText)
                         
                         // Debt cards
-                        ForEach(carDebts.indices, id: \.self) { index in
-                            CarDebtCard(debt: carDebts[index])
+                        ForEach(debts.filter { debt in
+                            searchText.isEmpty || (debt.debtName?.lowercased().contains(searchText.lowercased()) ?? false)
+                        }, id: \.self) { debt in
+                            NavigationLink(destination: DebtDetailsView()) {
+                                DebtCard(debt: DebtList(
+                                    name: debt.debtName ?? "Unknown",
+                                    balance: (debt.currentBalance - debt.paidAmount),
+                                    minimum: debt.minimumPayment,
+                                    apr: debt.apr,
+                                    progress: debt.paidAmount / debt.currentBalance // Assuming progress is based on paid amount vs. balance
+                                ))
                                 .padding(.horizontal)
+                            }
                         }
                     }
                     .padding()
@@ -127,7 +156,8 @@ struct DebtCategory: Identifiable {
     let color: Color
 }
 
-struct CarDebt {
+struct DebtList {
+    let name: String
     let balance: Double
     let minimum: Double
     let apr: Double
@@ -221,13 +251,14 @@ struct SearchBar: View {
     }
 }
 
-struct CarDebtCard: View {
-    let debt: CarDebt
+struct DebtCard: View {
+    let debt: DebtList
     
     var body: some View {
         VStack(spacing: 16) {
             HStack {
-                Text("Car")
+                Text(debt.name)
+                    .foregroundColor(.black)
                     .font(.headline)
                 Spacer()
             }
@@ -236,10 +267,10 @@ struct CarDebtCard: View {
                 // Progress Circle
                 ZStack {
                     Circle()
-                        .stroke(Color.blue.opacity(0.2), lineWidth: 8)
+                        .stroke(Color("MainColor").opacity(0.2), lineWidth: 8)
                     Circle()
                         .trim(from: 0, to: debt.progress)
-                        .stroke(Color.blue, lineWidth: 8)
+                        .stroke(Color("MainColor"), lineWidth: 8)
                         .rotationEffect(.degrees(-90))
                     Text("\(Int(debt.progress * 100))%")
                         .font(.system(.body, design: .rounded))
@@ -254,9 +285,13 @@ struct CarDebtCard: View {
                             .foregroundColor(.gray)
                         HStack(alignment: .firstTextBaseline, spacing: 0) {
                             Text("LKR ")
+                                .foregroundColor(.black)
                                 .font(.caption) // Smaller font for "LKR"
+                                .bold()
                             Text(String(format: "%.2f", debt.balance))
+                                .foregroundColor(.black)
                                 .font(.headline) // Regular font for the amount
+                                .bold()
                         }
                     }
                     
@@ -266,9 +301,13 @@ struct CarDebtCard: View {
                                 .foregroundColor(.gray)
                             HStack(alignment: .firstTextBaseline, spacing: 0) {
                                 Text("LKR ")
+                                    .foregroundColor(.black)
                                     .font(.caption) // Smaller font for "LKR"
+                                    .bold()
                                 Text(String(format: "%.2f", debt.minimum))
+                                    .foregroundColor(.black)
                                     .font(.body) // Regular font for the amount
+                                    .bold()
                             }
                         }
                         
@@ -278,7 +317,9 @@ struct CarDebtCard: View {
                             Text("APR")
                                 .foregroundColor(.gray)
                             Text("\(String(format: "%.1f", debt.apr))%")
+                                .foregroundColor(.black)
                                 .font(.body)
+                                .bold()
                         }
                     }
                 }
