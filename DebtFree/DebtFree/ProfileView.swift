@@ -7,77 +7,108 @@
 
 import SwiftUI
 import FirebaseAuth
+import LocalAuthentication
 
 struct ProfileView: View {
     @State private var isLoggedOut = false
+    @State private var isFaceIDEnabled = false
     
     var body: some View {
-        VStack {
-            Image("profile_image")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 100, height: 100)
-                .clipShape(Circle())
-            
-            Text("Lakshan Fernando")
-                .font(.title)
-                .fontWeight(.bold)
-            
-            VStack(alignment: .leading, spacing: 16) {
-                NavigationLink(destination: NotificationsView()) {
-                    Text("Notifications")
-                        .foregroundColor(.primary)
+        NavigationView {
+            Form {
+                Section {
+                    HStack {
+                        Image("user")
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 50, height: 50)
+                            .clipShape(Circle())
+                            .overlay(Circle().stroke(Color.white, lineWidth: 4))
+                        
+                        Text("Lakshan Fernando")
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                    }
                 }
                 
-                NavigationLink(destination: FAQView()) {
-                    Text("FAQ")
-                        .foregroundColor(.primary)
+                Section(header: Text("Settings")) {
+                    NavigationLink(destination: NotificationsView()) {
+                        Text("Notifications")
+                    }
+                    
+                    NavigationLink(destination: FAQView()) {
+                        Text("FAQ")
+                    }
+                    
+                    NavigationLink(destination: TermsAndConditionsView()) {
+                        Text("Terms and Conditions")
+                    }
+                    
+                    NavigationLink(destination: PrivacyPolicyView()) {
+                        Text("Privacy Policy")
+                    }
                 }
                 
-                NavigationLink(destination: TermsAndConditionsView()) {
-                    Text("Terms and Conditions")
-                        .foregroundColor(.primary)
+                Section(header: Text("Security")) {
+                    HStack {
+                        Text("Face ID")
+                        Spacer()
+                        Toggle(isOn: $isFaceIDEnabled) {
+                           // Text(isFaceIDEnabled ? "Enabled" : "Disabled")
+                        }
+                        .onChange(of: isFaceIDEnabled, perform: { value in
+                            updateFaceIDSetting(enabled: value)
+                        })
+                    }
                 }
                 
-                NavigationLink(destination: PrivacyPolicyView()) {
-                    Text("Privacy Policy")
-                        .foregroundColor(.primary)
+                Section {
+                    Button(action: {
+                        logOut()
+                    }) {
+                        Text("Log Out")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .foregroundColor(.white)
+                            .background(Color("MainColor"))
+                            .cornerRadius(25)
+                    }
+                    //.padding(.top)
                 }
             }
-            .padding(.top, 24)
-            
-            Spacer()
-            
-            Button(action: {
-                logOut()
-            }) {
-                Text("Log Out")
-                    .foregroundColor(.white)
-                    .padding()
-                    .background(Color.blue)
-                    .cornerRadius(8)
+            .navigationTitle("Profile")
+            .navigationBarTitleDisplayMode(.inline)
+            .fullScreenCover(isPresented: $isLoggedOut) {
+                SignInView()
             }
-            .padding(.bottom, 24)
-        }
-        .padding()
-        .fullScreenCover(isPresented: $isLoggedOut) {
-            // Navigate to SignIn View after logout
-            SignInView()
         }
     }
     
     func logOut() {
         do {
-            // Sign out from Firebase
             try Auth.auth().signOut()
-            
-            // Remove the user session (uid) from Keychain
             KeychainHelper.shared.delete(forKey: "uid")
-            
-            // Mark the user as logged out and show the SignIn view
             self.isLoggedOut = true
         } catch let signOutError as NSError {
             print("Error signing out: %@", signOutError)
+        }
+    }
+    
+    func updateFaceIDSetting(enabled: Bool) {
+        let context = LAContext()
+        var error: NSError?
+        
+        if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
+            if enabled {
+                // Enable Face ID - You might save this preference in UserDefaults or a secure location
+                print("Face ID enabled")
+            } else {
+                // Disable Face ID - Handle accordingly
+                print("Face ID disabled")
+            }
+        } else {
+            // Biometrics not available
+            print("Face ID not available")
         }
     }
 }
