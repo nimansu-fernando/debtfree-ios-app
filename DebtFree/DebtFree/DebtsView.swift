@@ -8,11 +8,153 @@
 import SwiftUI
 import CoreData
 import FirebaseAuth
+import Charts
+
+struct DebtChartData: Identifiable {
+    let id = UUID()
+    let name: String
+    let amount: Double
+    var color: Color
+}
+
+struct BalanceChartView: View {
+    let debts: FetchedResults<Debt>
+    let byCategory: Bool // true for category view, false for individual debts
+    
+    // Computed property to get chart data based on the view type
+    var chartData: [DebtChartData] {
+        if byCategory {
+            // Group debts by type and sum their balances
+            var categoryData: [String: Double] = [:]
+            for debt in debts {
+                let category = debt.debtType ?? "Other"
+                let balance = debt.currentBalance - debt.paidAmount
+                categoryData[category, default: 0] += balance
+            }
+            
+            // Convert to chart data with assigned colors
+            return categoryData.map { category, amount in
+                DebtChartData(
+                    name: category,
+                    amount: amount,
+                    color: colorForCategory(category)
+                )
+            }.filter { $0.amount > 0 } // Only show categories with positive balance
+        } else {
+            // Individual debts
+            return debts.map { debt in
+                DebtChartData(
+                    name: debt.debtName ?? "Unknown",
+                    amount: debt.currentBalance - debt.paidAmount,
+                    color: colorForCategory(debt.debtType ?? "Other")
+                )
+            }.filter { $0.amount > 0 }
+        }
+    }
+    
+    // Total balance
+    var totalBalance: Double {
+        chartData.reduce(0) { $0 + $1.amount }
+    }
+    
+    // Dynamic font size based on number of items
+    private var dynamicFontSize: CGFloat {
+        let baseSize: CGFloat = 14
+        let itemCount = CGFloat(chartData.count)
+        let minimumSize: CGFloat = 10
+        
+        // Reduce font size as number of items increases
+        let calculatedSize = baseSize - (itemCount - 3) * 1.5
+        return max(calculatedSize, minimumSize)
+    }
+    
+    var body: some View {
+        if chartData.isEmpty {
+            // Show placeholder when no data
+            Text("No debts found")
+                .foregroundColor(.gray)
+                .frame(height: 170)
+        } else {
+            HStack(spacing: 32) {
+                // Chart
+                Chart {
+                    ForEach(chartData) { item in
+                        SectorMark(
+                            angle: .value("Amount", item.amount),
+                            innerRadius: .ratio(0.618), // Golden ratio for aesthetics
+                            angularInset: 1.0
+                        )
+                        .foregroundStyle(item.color)
+                        .cornerRadius(3)
+                    }
+                }
+                .frame(width: 150, height: 150)
+                .overlay {
+                    VStack {
+                        Text("LKR")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                        Text(String(format: "%.2f", totalBalance))
+                            .font(.system(.title3, design: .rounded))
+                            .fontWeight(.semibold)
+                    }
+                }
+                
+                // Legend with dynamic font size
+                VStack(alignment: .leading, spacing: 4) {
+                    ForEach(chartData) { item in
+                        HStack(spacing: 8) {
+                            Circle()
+                                .fill(item.color)
+                                .frame(width: 8, height: 8)
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(item.name)
+                                    .font(.system(size: dynamicFontSize))
+                                Text("LKR \(String(format: "%.2f", item.amount))")
+                                    .font(.system(size: max(dynamicFontSize - 2, 8)))
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                    }
+                }
+                .frame(maxHeight: 150)
+            }
+            .padding()
+        }
+    }
+    
+    // Function to assign consistent colors to debt categories
+    func colorForCategory(_ category: String) -> Color {
+        switch category {
+        case "Credit Card":
+            return .red
+        case "Vehicle Loan":
+            return .blue
+        case "Student Loan":
+            return .green
+        case "Buy Now, Pay Later Installments":
+            return .orange
+        case "Medical Debt":
+            return .purple
+        case "Family or Friend Loan":
+            return .pink
+        case "Personal Loan":
+            return .cyan
+        case "Business Loan":
+            return .indigo
+        case "Peer to Peer (P2P) Loan":
+            return .mint
+        default:
+            return .gray
+        }
+    }
+}
+
 
 struct DebtView: View {
     @State private var searchText = ""
     @State private var currentPage = 0
-    @State private var isShowingAddDebtView = false // State variable to show AddDebtView
+    @State private var isShowingAddDebtView = false
     @State private var userID: String = ""
     
     // Updated FetchRequest with a predicate for the current user
@@ -22,12 +164,11 @@ struct DebtView: View {
     init() {
         let request: NSFetchRequest<Debt> = Debt.fetchRequest()
         request.sortDescriptors = [NSSortDescriptor(keyPath: \Debt.debtName, ascending: true)]
-        // We'll update the predicate when userID changes
         request.predicate = NSPredicate(format: "userID == %@", "")
         _debts = FetchRequest(fetchRequest: request)
     }
     
-    // Filtered debts based on search text
+    // Filtered debts for the list only
     var filteredDebts: [Debt] {
         if searchText.isEmpty {
             return Array(debts)
@@ -37,24 +178,6 @@ struct DebtView: View {
             }
         }
     }
-
-    // Sample data for the pie chart
-    let chartDebts = [
-        DebtCategory(name: "Vehicle Loan", amount: 8000, color: .blue),
-        DebtCategory(name: "Student Loan", amount: 40000, color: .green),
-        DebtCategory(name: "Taxes", amount: 15000, color: .pink),
-        DebtCategory(name: "Business Loan", amount: 20000, color: .purple),
-        DebtCategory(name: "Other", amount: 10962.19, color: .orange)
-    ]
-    
-    // Sample car debts
-    let sampleDebts = Array(repeating: DebtList(
-        name: "CAR",
-        balance: 448037.98,
-        minimum: 800000,
-        apr: 16.00,
-        progress: 0.224
-    ), count: 6)
     
     var body: some View {
         NavigationView {
@@ -78,9 +201,10 @@ struct DebtView: View {
                             .padding(.horizontal)
                         
                         TabView(selection: $currentPage) {
-                            PieChartView(debts: chartDebts)
+                            // Pass the full debts to charts regardless of search
+                            BalanceChartView(debts: debts, byCategory: true)
                                 .tag(0)
-                            PieChartView(debts: chartDebts)
+                            BalanceChartView(debts: debts, byCategory: false)
                                 .tag(1)
                         }
                         .frame(height: 170)
@@ -101,18 +225,27 @@ struct DebtView: View {
                     .background(Color.white)
                     .mask(
                         RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .padding(.bottom, -12) // Extend the mask to include the full height
+                            .padding(.bottom, -12)
                     )
                     .padding(.top)
 
                     // Debts section
                     VStack(alignment: .leading, spacing: 16) {
                         HStack {
-                            Text("Debts")
-                                .font(.headline)
+                            // Show total count and filtered count when searching
+                            if !searchText.isEmpty {
+                                Text("Showing \(filteredDebts.count) of \(debts.count) debts")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                            } else {
+                                Text("Debts")
+                                    .font(.headline)
+                            }
+                            
                             Spacer()
+                            
                             Button(action: {
-                                isShowingAddDebtView = true // Show AddDebtView when button is clicked
+                                isShowingAddDebtView = true
                             }) {
                                 Text("+ Add")
                                     .foregroundColor(.white)
@@ -126,7 +259,7 @@ struct DebtView: View {
                         // Search bar
                         SearchBar(text: $searchText)
                         
-                        // Debt cards
+                        // Filtered Debt cards
                         ForEach(filteredDebts, id: \.self) { debt in
                             NavigationLink(destination: DebtDetailsView(debt: debt)) {
                                 DebtCard(debt: DebtList(
@@ -139,6 +272,19 @@ struct DebtView: View {
                                 .padding(.horizontal)
                             }
                         }
+                        
+                        // Show "No results" message when search yields no results
+                        if filteredDebts.isEmpty && !searchText.isEmpty {
+                            VStack(spacing: 8) {
+                                Text("No matching debts found")
+                                    .font(.headline)
+                                Text("Try adjusting your search terms")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 20)
+                        }
                     }
                     .padding()
                     .background(Color.white)
@@ -147,23 +293,20 @@ struct DebtView: View {
             }
             .background(Color(.systemGray6))
             .sheet(isPresented: $isShowingAddDebtView) {
-                AddDebtView() // Present AddDebtView in a sheet
+                AddDebtView()
             }
             .onAppear {
-                // Update userID and fetch request when view appears
                 if let user = Auth.auth().currentUser {
                     self.userID = user.uid
                     updateFetchRequest()
                 }
             }
-            // Listen for auth state changes
             .onChange(of: userID) { newValue in
                 updateFetchRequest()
             }
         }
     }
     
-    // Function to update the fetch request predicate
     private func updateFetchRequest() {
         debts.nsPredicate = NSPredicate(format: "userID == %@", userID)
     }
@@ -276,6 +419,14 @@ struct SearchBar: View {
 struct DebtCard: View {
     let debt: DebtList
     
+    // Data for the donut chart
+    private var chartData: [ProgressChartData] {
+        [
+            ProgressChartData(type: "Paid", value: debt.progress * 100),
+            ProgressChartData(type: "Remaining", value: (1 - debt.progress) * 100)
+        ]
+    }
+    
     var body: some View {
         VStack(spacing: 16) {
             HStack {
@@ -286,19 +437,21 @@ struct DebtCard: View {
             }
             
             HStack(spacing: 24) {
-                // Progress Circle
-                ZStack {
-                    Circle()
-                        .stroke(Color("MainColor").opacity(0.2), lineWidth: 8)
-                    Circle()
-                        .trim(from: 0, to: debt.progress)
-                        .stroke(Color("MainColor"), lineWidth: 8)
-                        .rotationEffect(.degrees(-90))
+                // Progress Chart
+                Chart(chartData, id: \.type) { item in
+                    SectorMark(
+                        angle: .value("Progress", item.value),
+                        innerRadius: .ratio(0.8),
+                        angularInset: 1.0
+                    )
+                    .foregroundStyle(item.type == "Paid" ? Color("MainColor") : Color("MainColor").opacity(0.2))
+                }
+                .frame(width: 60, height: 60)
+                .overlay {
                     Text("\(Int(debt.progress * 100))%")
                         .font(.system(.body, design: .rounded))
                         .fontWeight(.semibold)
                 }
-                .frame(width: 60, height: 60)
                 
                 /// Debt Details
                 VStack(alignment: .leading, spacing: 8) {
@@ -308,11 +461,11 @@ struct DebtCard: View {
                         HStack(alignment: .firstTextBaseline, spacing: 0) {
                             Text("LKR ")
                                 .foregroundColor(.black)
-                                .font(.caption) // Smaller font for "LKR"
+                                .font(.caption)
                                 .bold()
                             Text(String(format: "%.2f", debt.balance))
                                 .foregroundColor(.black)
-                                .font(.headline) // Regular font for the amount
+                                .font(.headline)
                                 .bold()
                         }
                     }
@@ -324,16 +477,16 @@ struct DebtCard: View {
                             HStack(alignment: .firstTextBaseline, spacing: 0) {
                                 Text("LKR ")
                                     .foregroundColor(.black)
-                                    .font(.caption) // Smaller font for "LKR"
+                                    .font(.caption)
                                     .bold()
                                 Text(String(format: "%.2f", debt.minimum))
                                     .foregroundColor(.black)
-                                    .font(.body) // Regular font for the amount
+                                    .font(.body)
                                     .bold()
                             }
                         }
                         
-                        Spacer() // Pushes APR section to the right
+                        Spacer()
                         
                         VStack(alignment: .leading, spacing: 4) {
                             Text("APR")
@@ -345,7 +498,7 @@ struct DebtCard: View {
                         }
                     }
                 }
-
+                
                 Spacer()
             }
         }
@@ -354,6 +507,12 @@ struct DebtCard: View {
         .cornerRadius(12)
         .padding(.bottom)
     }
+}
+
+// Supporting struct for the progress chart data
+struct ProgressChartData {
+    let type: String
+    let value: Double
 }
 
 struct DebtView_Previews: PreviewProvider {
