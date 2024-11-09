@@ -7,17 +7,25 @@
 
 import SwiftUI
 import CoreData
+import FirebaseAuth
 
 struct DebtView: View {
     @State private var searchText = ""
     @State private var currentPage = 0
     @State private var isShowingAddDebtView = false // State variable to show AddDebtView
+    @State private var userID: String = ""
     
-    // Fetch debts from Core Data
-    @FetchRequest(
-        entity: Debt.entity(),
-        sortDescriptors: [NSSortDescriptor(keyPath: \Debt.debtName, ascending: true)]
-    ) var debts: FetchedResults<Debt>
+    // Updated FetchRequest with a predicate for the current user
+    @FetchRequest private var debts: FetchedResults<Debt>
+    
+    // Initialize with dynamic FetchRequest based on userID
+    init() {
+        let request: NSFetchRequest<Debt> = Debt.fetchRequest()
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \Debt.debtName, ascending: true)]
+        // We'll update the predicate when userID changes
+        request.predicate = NSPredicate(format: "userID == %@", "")
+        _debts = FetchRequest(fetchRequest: request)
+    }
     
     // Filtered debts based on search text
     var filteredDebts: [Debt] {
@@ -119,9 +127,7 @@ struct DebtView: View {
                         SearchBar(text: $searchText)
                         
                         // Debt cards
-                        ForEach(debts.filter { debt in
-                            searchText.isEmpty || (debt.debtName?.lowercased().contains(searchText.lowercased()) ?? false)
-                        }, id: \.self) { debt in
+                        ForEach(filteredDebts, id: \.self) { debt in
                             NavigationLink(destination: DebtDetailsView(debt: debt)) {
                                 DebtCard(debt: DebtList(
                                     name: debt.debtName ?? "Unknown",
@@ -143,7 +149,23 @@ struct DebtView: View {
             .sheet(isPresented: $isShowingAddDebtView) {
                 AddDebtView() // Present AddDebtView in a sheet
             }
+            .onAppear {
+                // Update userID and fetch request when view appears
+                if let user = Auth.auth().currentUser {
+                    self.userID = user.uid
+                    updateFetchRequest()
+                }
+            }
+            // Listen for auth state changes
+            .onChange(of: userID) { newValue in
+                updateFetchRequest()
+            }
         }
+    }
+    
+    // Function to update the fetch request predicate
+    private func updateFetchRequest() {
+        debts.nsPredicate = NSPredicate(format: "userID == %@", userID)
     }
 }
 
@@ -330,6 +352,7 @@ struct DebtCard: View {
         .padding()
         .background(Color(.systemGray6))
         .cornerRadius(12)
+        .padding(.bottom)
     }
 }
 
