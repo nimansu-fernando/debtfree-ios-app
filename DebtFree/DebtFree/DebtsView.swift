@@ -122,13 +122,13 @@ struct DebtView: View {
                         ForEach(debts.filter { debt in
                             searchText.isEmpty || (debt.debtName?.lowercased().contains(searchText.lowercased()) ?? false)
                         }, id: \.self) { debt in
-                            NavigationLink(destination: DebtDetailsView()) {
+                            NavigationLink(destination: DebtDetailsView(debt: debt)) {
                                 DebtCard(debt: DebtList(
                                     name: debt.debtName ?? "Unknown",
                                     balance: (debt.currentBalance - debt.paidAmount),
                                     minimum: debt.minimumPayment,
                                     apr: debt.apr,
-                                    progress: debt.paidAmount / debt.currentBalance // Assuming progress is based on paid amount vs. balance
+                                    progress: debt.paidAmount / debt.currentBalance
                                 ))
                                 .padding(.horizontal)
                             }
@@ -280,7 +280,7 @@ struct DebtCard: View {
                 
                 /// Debt Details
                 VStack(alignment: .leading, spacing: 8) {
-                    VStack(alignment: .leading, spacing: 4) {  
+                    VStack(alignment: .leading, spacing: 4) {
                         Text("Balance")
                             .foregroundColor(.gray)
                         HStack(alignment: .firstTextBaseline, spacing: 0) {

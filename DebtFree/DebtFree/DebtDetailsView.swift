@@ -6,23 +6,53 @@
 //
 
 import SwiftUI
+import CoreData
+
+// Move EditableField enum outside the view and make it conform to Identifiable
+enum EditableField: String, Identifiable {
+    case debtName
+    case lenderName
+    case currentBalance
+    case apr
+    case minimumPayment
+    case minimumPaymentCalc
+    case paymentFrequency
+    case nextPaymentDate
+    case notes
+    
+    // Required by Identifiable protocol
+    var id: String { self.rawValue }
+    
+    var title: String {
+        switch self {
+        case .debtName: return "Debt Name"
+        case .lenderName: return "Lending Institution"
+        case .currentBalance: return "Current Balance"
+        case .apr: return "Annual Percentage Rate"
+        case .minimumPayment: return "Minimum Payment"
+        case .minimumPaymentCalc: return "Minimum Payment Calculation"
+        case .paymentFrequency: return "Payment Frequency"
+        case .nextPaymentDate: return "Next Payment Due Date"
+        case .notes: return "Notes"
+        }
+    }
+}
 
 struct DebtDetailsView: View {
+    @Environment(\.managedObjectContext) private var viewContext
     @State private var selectedTab = 0
+    @State private var showEditModal = false
+    @State private var editingField: EditableField?
+    @ObservedObject var debt: Debt
+    @State private var showAlert = false
+    @State private var alertMessage = ""
     
     var body: some View {
         VStack(spacing: 0) {
             // Navigation Bar
             HStack {
-                Button(action: {}) {
-                    Image(systemName: "chevron.left")
-                        .foregroundColor(.blue)
-                }
-                Text("Back")
-                    .foregroundColor(.blue)
-                
                 Spacer()
-                Text("Car")
+                Text(debt.debtName ?? "Unknown")
                     .font(.headline)
                     .frame(maxWidth: .infinity, alignment: .center)
                 Spacer()
@@ -41,46 +71,62 @@ struct DebtDetailsView: View {
             .padding()
             
             TabView(selection: $selectedTab) {
-                ProgressView()
+                ProgressView(debt: debt)
                     .tag(0)
                 TransactionsView()
                     .tag(1)
-                DetailsView()
+                DetailsView(debt: debt, editingField: $editingField, showEditModal: $showEditModal)
                     .tag(2)
             }
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+        }
+        .sheet(item: $editingField) { field in
+            EditDetailView(
+                debt: debt,
+                field: field,
+                showEditModal: $showEditModal,
+                showAlert: $showAlert,
+                alertMessage: $alertMessage
+            )
+        }
+        .alert("Update Status", isPresented: $showAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(alertMessage)
         }
     }
 }
 
 struct ProgressView: View {
+    let debt: Debt
+    
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
                 // Debt Payoff Date
-                VStack(alignment: .center, spacing: 8) { // Change alignment to .center
+                VStack(alignment: .center, spacing: 8) {
                     HStack {
                         Image(systemName: "calendar")
                             .foregroundColor(.blue)
                         Text("DEBT PAYOFF DATE")
                             .foregroundColor(.blue)
                     }
-                    .frame(maxWidth: .infinity, alignment: .center) // Center the HStack
+                    .frame(maxWidth: .infinity, alignment: .center)
                     
-                    Text("January 15, 2025")
+                    Text(debt.nextPaymentDate ?? Date(), style: .date)
                         .font(.title2)
                         .fontWeight(.semibold)
-                        .multilineTextAlignment(.center) // Center text
+                        .multilineTextAlignment(.center)
                     
-                    Text("in 2 months 28 days")
+                    // Calculate days remaining...
+                    Text("Payment Due")
                         .foregroundColor(.gray)
-                        .multilineTextAlignment(.center) // Center text
+                        .multilineTextAlignment(.center)
                 }
-                .frame(maxWidth: .infinity, alignment: .center) // Center the inner VStack
+                .frame(maxWidth: .infinity, alignment: .center)
                 .padding()
                 .background(Color(.systemGray6))
                 .cornerRadius(10)
-
                 
                 // Payoff Progress
                 VStack(spacing: 20) {
@@ -88,14 +134,15 @@ struct ProgressView: View {
                         .font(.headline)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     
+                    let progress = debt.paidAmount / debt.currentBalance
                     ZStack {
                         Circle()
                             .stroke(Color.blue.opacity(0.2), lineWidth: 15)
                         Circle()
-                            .trim(from: 0, to: 0.224)
+                            .trim(from: 0, to: CGFloat(progress))
                             .stroke(Color.blue, lineWidth: 15)
                             .rotationEffect(.degrees(-90))
-                        Text("22.4%")
+                        Text("\(Int(progress * 100))%")
                             .font(.title2)
                             .fontWeight(.bold)
                     }
@@ -105,13 +152,13 @@ struct ProgressView: View {
                         HStack {
                             Text("Principle Paid")
                             Spacer()
-                            Text("LKR 1,000,037.98")
+                            Text("LKR \(String(format: "%.2f", debt.paidAmount))")
                                 .foregroundColor(.green)
                         }
                         HStack {
                             Text("Balance")
                             Spacer()
-                            Text("LKR 3,000,962.19")
+                            Text("LKR \(String(format: "%.2f", debt.currentBalance - debt.paidAmount))")
                                 .foregroundColor(.red)
                         }
                     }
@@ -243,66 +290,132 @@ struct TransactionsView: View {
 }
 
 struct DetailsView: View {
-    @State private var showEditModal = false
-    @State private var detailToEdit: String = "" // To hold the detail being edited
-
+    @Environment(\.managedObjectContext) private var viewContext
+    @Environment(\.dismiss) private var dismiss
+    @ObservedObject var debt: Debt
+    @Binding var editingField: EditableField?
+    @Binding var showEditModal: Bool
+    @State private var showDeleteAlert = false
+    
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
                 // Information Section
                 GroupBox(label: Text("Information").font(.headline).foregroundColor(.primary)) {
                     VStack(spacing: 10) {
-                        createNavigationLink(title: "Debt Name", detail: "Car")
-                        createNavigationLink(title: "Category", detail: "Vehicle Loan")
-                        createNavigationLink(title: "Lending Institution", detail: "MBSL")
+                        createNavigationLink(title: "Debt Name", detail: debt.debtName ?? "Unknown", field: .debtName)
+                        // Category is not editable
+                        HStack {
+                            Text("Category")
+                                .font(.body)
+                                .foregroundColor(.primary)
+                            Spacer()
+                            Text(debt.debtType ?? "Unknown")
+                                .foregroundColor(.gray)
+                        }
+                        .padding(.vertical, 8)
+                        createNavigationLink(title: "Lending Institution", detail: debt.lenderName ?? "Unknown", field: .lenderName)
                     }
                 }
                 
                 // Terms Section
                 GroupBox(label: Text("Terms").font(.headline).foregroundColor(.primary)) {
                     VStack(spacing: 10) {
-                        createNavigationLink(title: "Current Balance", detail: "LKR 5,000,000.00")
-                        createNavigationLink(title: "Annual Percentage Rate", detail: "16.00 %")
+                        createNavigationLink(
+                            title: "Current Balance",
+                            detail: "LKR \(String(format: "%.2f", debt.currentBalance))",
+                            field: .currentBalance
+                        )
+                        createNavigationLink(
+                            title: "Annual Percentage Rate",
+                            detail: "\(String(format: "%.2f", debt.apr))%",
+                            field: .apr
+                        )
                     }
                 }
                 
                 // Payment Details Section
                 GroupBox(label: Text("Payment Details").font(.headline).foregroundColor(.primary)) {
                     VStack(spacing: 10) {
-                        createNavigationLink(title: "Minimum Payment Calculation", detail: "Fixed")
-                        createNavigationLink(title: "Minimum Payment", detail: "LKR 80,000.00")
-                        createNavigationLink(title: "Payment Frequency", detail: "Once per month")
-                        createNavigationLink(title: "Next Payment Due Date", detail: "Nov 25, 2024")
+                        createNavigationLink(
+                            title: "Minimum Payment Calculation",
+                            detail: debt.minimumPaymentCalc ?? "Unknown",
+                            field: .minimumPaymentCalc
+                        )
+                        createNavigationLink(
+                            title: "Minimum Payment",
+                            detail: "LKR \(String(format: "%.2f", debt.minimumPayment))",
+                            field: .minimumPayment
+                        )
+                        createNavigationLink(
+                            title: "Payment Frequency",
+                            detail: debt.paymentFrequency ?? "Unknown",
+                            field: .paymentFrequency
+                        )
+                        createNavigationLink(
+                            title: "Next Payment Due Date",
+                            detail: debt.nextPaymentDate?.formatted(date: .long, time: .omitted) ?? "Unknown",
+                            field: .nextPaymentDate
+                        )
                     }
                 }
                 
                 // Notes Section
                 GroupBox(label: Text("Notes").font(.headline).foregroundColor(.primary)) {
                     Button(action: {
-                        // Action for adding a note
+                        editingField = .notes
+                        showEditModal = true
                     }) {
                         HStack {
-                            Text("Add a note...")
-                                .foregroundColor(.blue)
+                            if let notes = debt.notes, !notes.isEmpty {
+                                Text(notes)
+                                    .foregroundColor(.primary)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            } else {
+                                Text("Add a note...")
+                                    .foregroundColor(.blue)
+                            }
                             Spacer()
                             Image(systemName: "chevron.right")
                                 .foregroundColor(.blue)
                         }
                     }
                 }
+                
+                // Delete Button Section
+                Button(action: {
+                    showDeleteAlert = true
+                }) {
+                    HStack {
+                        Image(systemName: "trash")
+                            .foregroundColor(.red)
+                        Text("Delete Debt")
+                            .foregroundColor(.red)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color(.systemGray6))
+                    .cornerRadius(10)
+                }
+                .padding(.top)
+                .padding(.bottom)
             }
             .padding()
         }
-        .sheet(isPresented: $showEditModal) {
-            EditDetailView(detail: $detailToEdit)
+        .alert("Delete Debt", isPresented: $showDeleteAlert) {
+            Button("Cancel", role: .cancel) {}
+            Button("Delete", role: .destructive) {
+                deleteDebt()
+            }
+        } message: {
+            Text("Are you sure you want to delete this debt? This action cannot be undone.")
         }
     }
     
-    // Helper function to create a NavigationLink with a title and detail
-    private func createNavigationLink(title: String, detail: String) -> some View {
+    private func createNavigationLink(title: String, detail: String, field: EditableField) -> some View {
         Button(action: {
-            detailToEdit = detail // Set the detail to edit
-            showEditModal.toggle() // Show the modal
+            editingField = field
+            showEditModal = true
         }) {
             HStack {
                 Text(title)
@@ -314,25 +427,158 @@ struct DetailsView: View {
                 Image(systemName: "chevron.right")
                     .foregroundColor(.blue)
             }
-            .padding(.vertical, 8) // Adds vertical padding for better touch target
+            .padding(.vertical, 8)
+        }
+    }
+    
+    private func deleteDebt() {
+        viewContext.delete(debt)
+        
+        do {
+            try viewContext.save()
+            // Dismiss the view after successful deletion
+            dismiss()
+        } catch {
+            print("Error deleting debt: \(error)")
         }
     }
 }
 
+
 struct EditDetailView: View {
-    @Binding var detail: String // Binding to the detail being edited
+    @Environment(\.managedObjectContext) private var viewContext
+    @Environment(\.dismiss) private var dismiss
+    @ObservedObject var debt: Debt
+    let field: EditableField
+    @Binding var showEditModal: Bool
+    @Binding var showAlert: Bool
+    @Binding var alertMessage: String
+    
+    // State variables for different types of edits
+    @State private var textInput: String = ""
+    @State private var dateInput: Date = Date()
+    @State private var numberInput: String = ""
+    
+    // State variables for pickers
+    @State private var selectedPaymentCalc: String = ""
+    @State private var selectedFrequency: String = ""
+    
+    // Constants for picker options
+    let paymentCalcOptions = ["Fixed Amount", "Percentage of Balance"]
+    let frequencyOptions = ["Monthly", "Bi-weekly", "Weekly"]
     
     var body: some View {
         NavigationView {
             Form {
-                Section(header: Text("Edit Detail")) {
-                    TextField("Detail", text: $detail)
+                Section(header: Text("Edit \(field.title)")) {
+                    switch field {
+                    case .nextPaymentDate:
+                        DatePicker("Select Date", selection: $dateInput, displayedComponents: .date)
+                        
+                    case .minimumPaymentCalc:
+                        Picker(selection: $selectedPaymentCalc, label: Text("")) { // Empty label text
+                            ForEach(paymentCalcOptions, id: \.self) { option in
+                                Text(option).tag(option)
+                            }
+                        }
+                        .pickerStyle(MenuPickerStyle())
+                        .labelsHidden() // Hides any residual label spacing
+
+                    case .paymentFrequency:
+                        Picker(selection: $selectedFrequency, label: Text("")) { // Empty label text
+                            ForEach(frequencyOptions, id: \.self) { option in
+                                Text(option).tag(option)
+                            }
+                        }
+                        .pickerStyle(MenuPickerStyle())
+                        .labelsHidden() // Hides any residual label spacing
+
+                        
+                    case .currentBalance, .minimumPayment, .apr:
+                        TextField("Enter value", text: $numberInput)
+                            .keyboardType(.decimalPad)
+                        
+                    default:
+                        TextField("Enter value", text: $textInput)
+                    }
                 }
             }
-            .navigationBarTitle("Edit Detail", displayMode: .inline)
-            .navigationBarItems(trailing: Button("Done") {
-                // Action to save changes
-            })
+            .navigationBarTitle("Edit \(field.title)", displayMode: .inline)
+            .navigationBarItems(
+                leading: Button("Cancel") {
+                    dismiss()
+                },
+                trailing: Button("Save") {
+                    saveChanges()
+                }
+            )
+            .onAppear {
+                setupInitialValue()
+            }
+        }
+    }
+    
+    private func setupInitialValue() {
+        switch field {
+        case .debtName:
+            textInput = debt.debtName ?? ""
+        case .lenderName:
+            textInput = debt.lenderName ?? ""
+        case .currentBalance:
+            numberInput = String(format: "%.2f", debt.currentBalance)
+        case .apr:
+            numberInput = String(format: "%.2f", debt.apr)
+        case .minimumPayment:
+            numberInput = String(format: "%.2f", debt.minimumPayment)
+        case .minimumPaymentCalc:
+            selectedPaymentCalc = debt.minimumPaymentCalc ?? paymentCalcOptions[0]
+        case .paymentFrequency:
+            selectedFrequency = debt.paymentFrequency ?? frequencyOptions[0]
+        case .nextPaymentDate:
+            dateInput = debt.nextPaymentDate ?? Date()
+        case .notes:
+            textInput = debt.notes ?? ""
+        }
+    }
+    
+    private func saveChanges() {
+        viewContext.performAndWait {
+            switch field {
+            case .debtName:
+                debt.debtName = textInput
+            case .lenderName:
+                debt.lenderName = textInput
+            case .currentBalance:
+                if let value = Double(numberInput) {
+                    debt.currentBalance = value
+                }
+            case .apr:
+                if let value = Double(numberInput) {
+                    debt.apr = value
+                }
+            case .minimumPayment:
+                if let value = Double(numberInput) {
+                    debt.minimumPayment = value
+                }
+            case .minimumPaymentCalc:
+                debt.minimumPaymentCalc = selectedPaymentCalc
+            case .paymentFrequency:
+                debt.paymentFrequency = selectedFrequency
+            case .nextPaymentDate:
+                debt.nextPaymentDate = dateInput
+            case .notes:
+                debt.notes = textInput
+            }
+            
+            do {
+                try viewContext.save()
+                alertMessage = "Successfully updated \(field.title.lowercased())"
+                showAlert = true
+                dismiss()
+            } catch {
+                alertMessage = "Failed to save changes: \(error.localizedDescription)"
+                showAlert = true
+            }
         }
     }
 }
@@ -340,6 +586,7 @@ struct EditDetailView: View {
 
 struct CarLoanView_Previews: PreviewProvider {
     static var previews: some View {
-        DebtDetailsView()
+        //DebtDetailsView()
+        EmptyView()
     }
 }

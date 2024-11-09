@@ -154,12 +154,12 @@ struct SignUpView: View {
                     // Sign Up Button with Loading Indicator
                     Button(action: signUp) {
                         if isLoading {
-                            ProgressView()
+                            /*ProgressView()
                                 .progressViewStyle(CircularProgressViewStyle(tint: .white))
                                 .frame(maxWidth: .infinity)
                                 .padding()
                                 .background(Color("MainColor"))
-                                .cornerRadius(25)
+                                .cornerRadius(25)*/
                         } else {
                             Text("Sign Up")
                                 .foregroundColor(.white)

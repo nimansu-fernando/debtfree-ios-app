@@ -70,10 +70,10 @@ struct ProfileView: View {
                             .frame(maxWidth: .infinity)
                             .padding()
                             .foregroundColor(.white)
-                            .background(Color("MainColor"))
+                            .background(Color.blue)
                             .cornerRadius(25)
                     }
-                    //.padding(.top)
+                    .padding(.top)
                 }
             }
             .navigationTitle("Profile")
