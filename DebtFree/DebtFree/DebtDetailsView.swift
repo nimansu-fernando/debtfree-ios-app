@@ -7,6 +7,7 @@
 
 import SwiftUI
 import CoreData
+import Charts
 
 // Move EditableField enum outside the view and make it conform to Identifiable
 enum EditableField: String, Identifiable {
@@ -38,6 +39,59 @@ enum EditableField: String, Identifiable {
     }
 }
 
+// Add helper functions for payoff calculations
+extension Debt {
+    func calculatePayoffDate() -> Date {
+        let balance = self.currentBalance
+        let payment = self.minimumPayment
+        let apr = self.apr / 100.0
+        
+        // Monthly interest rate
+        let monthlyRate = apr / 12.0
+        
+        // Number of months needed to pay off debt
+        // Using amortization formula: n = -log(1 - (r*PV)/PMT) / log(1 + r)
+        // Where: r = monthly rate, PV = present value (balance), PMT = payment
+        let monthsToPayoff: Double
+        if monthlyRate > 0 {
+            monthsToPayoff = -log(1 - (monthlyRate * balance) / payment) / log(1 + monthlyRate)
+        } else {
+            monthsToPayoff = balance / payment
+        }
+        
+        // Calculate the payoff date
+        return Calendar.current.date(byAdding: .month, value: Int(ceil(monthsToPayoff)), to: Date()) ?? Date()
+    }
+    
+    func remainingTimeDescription() -> (months: Int, days: Int) {
+        let payoffDate = calculatePayoffDate()
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.month, .day], from: Date(), to: payoffDate)
+        return (months: components.month ?? 0, days: components.day ?? 0)
+    }
+}
+
+struct PayoffPoint: Identifiable {
+    let id = UUID()
+    let month: String
+    let balance: Double
+}
+
+struct PaymentBreakdown: Identifiable {
+    let id = UUID()
+    let month: String
+    let principal: Double
+    let interest: Double
+    let remainingBalance: Double
+}
+
+struct CostBreakdown: Identifiable {
+    let id = UUID()
+    let category: String
+    let amount: Double
+    var color: Color
+}
+
 struct DebtDetailsView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @State private var selectedTab = 0
@@ -50,7 +104,7 @@ struct DebtDetailsView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Navigation Bar
-            HStack {
+            /*HStack {
                 Spacer()
                 Text(debt.debtName ?? "Unknown")
                     .font(.headline)
@@ -58,7 +112,7 @@ struct DebtDetailsView: View {
                 Spacer()
             }
             .padding()
-            .background(Color.white)
+            .background(Color.white)*/
 
             
             // Tab Bar
@@ -100,10 +154,111 @@ struct DebtDetailsView: View {
 struct ProgressView: View {
     let debt: Debt
     
+    // Calculate monthly payoff points
+    private var payoffPoints: [PayoffPoint] {
+        var points: [PayoffPoint] = []
+        let monthlyRate = debt.apr / (100.0 * 12.0)
+        var currentBalance = debt.currentBalance - debt.paidAmount
+        let payment = debt.minimumPayment
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MMM"
+        
+        var currentDate = Date()
+        
+        // Generate points for each month until paid off
+        while currentBalance > 0 {
+            points.append(PayoffPoint(
+                month: dateFormatter.string(from: currentDate),
+                balance: currentBalance
+            ))
+            
+            // Calculate next month's balance
+            let interest = currentBalance * monthlyRate
+            currentBalance = currentBalance + interest - payment
+            
+            // Move to next month
+            currentDate = Calendar.current.date(byAdding: .month, value: 1, to: currentDate) ?? currentDate
+            
+            // Safety check to prevent infinite loop
+            if points.count > 60 { // Show max 5 years
+                break
+            }
+        }
+        
+        return points
+    }
+    
+    // Calculate total interest and payments
+    private func calculateTotalInterest() -> (principal: Double, interest: Double) {
+        let balance = debt.currentBalance
+        let payment = debt.minimumPayment
+        let apr = debt.apr / 100.0
+        
+        var remainingBalance = balance
+        var totalInterest: Double = 0
+        
+        while remainingBalance > 0 {
+            let monthlyInterest = (remainingBalance * apr) / 12.0
+            totalInterest += monthlyInterest
+            
+            let principalPayment = payment - monthlyInterest
+            remainingBalance -= principalPayment
+            
+            // Break if payment is insufficient to cover interest
+            if monthlyInterest >= payment {
+                totalInterest = Double.infinity
+                break
+            }
+            
+            // Safety check to prevent infinite loop
+            if totalInterest > balance * 10 {
+                break
+            }
+        }
+        
+        return (principal: balance, interest: totalInterest)
+    }
+    
+    // Calculate monthly payment breakdowns
+    private func calculatePaymentBreakdowns() -> [PaymentBreakdown] {
+        var breakdowns: [PaymentBreakdown] = []
+        let monthlyPayment = debt.minimumPayment
+        let monthlyRate = debt.apr / (100.0 * 12.0)
+        var remainingBalance = debt.currentBalance
+        
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MMM"
+        var currentDate = Date()
+        
+        // Generate first 12 months of payments
+        for _ in 1...12 {
+            let monthlyInterest = remainingBalance * monthlyRate
+            let principalPayment = min(monthlyPayment - monthlyInterest, remainingBalance)
+            
+            if monthlyPayment <= monthlyInterest {
+                break // Payment too low to make progress
+            }
+            
+            breakdowns.append(PaymentBreakdown(
+                month: dateFormatter.string(from: currentDate),
+                principal: principalPayment,
+                interest: monthlyInterest,
+                remainingBalance: remainingBalance
+            ))
+            
+            remainingBalance -= principalPayment
+            if remainingBalance <= 0 { break }
+            
+            currentDate = Calendar.current.date(byAdding: .month, value: 1, to: currentDate) ?? currentDate
+        }
+        
+        return breakdowns
+    }
+    
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
-                // Debt Payoff Date
+                // Updated Debt Payoff Date section
                 VStack(alignment: .center, spacing: 8) {
                     HStack {
                         Image(systemName: "calendar")
@@ -113,13 +268,18 @@ struct ProgressView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .center)
                     
-                    Text(debt.nextPaymentDate ?? Date(), style: .date)
+                    Text(debt.calculatePayoffDate(), style: .date)
                         .font(.title2)
                         .fontWeight(.semibold)
                         .multilineTextAlignment(.center)
                     
-                    // Calculate days remaining...
-                    Text("Payment Due")
+                    let remainingTime = debt.remainingTimeDescription()
+                    Text("\(remainingTime.months) months, \(remainingTime.days) days remaining")
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.center)
+                        .padding(.top, 4)
+                    
+                    Text("Next Payment: \(debt.nextPaymentDate ?? Date(), style: .date)")
                         .foregroundColor(.gray)
                         .multilineTextAlignment(.center)
                 }
@@ -128,37 +288,63 @@ struct ProgressView: View {
                 .background(Color(.systemGray6))
                 .cornerRadius(10)
                 
-                // Payoff Progress
+                // Payoff Progress section
                 VStack(spacing: 20) {
                     Text("Payoff Progress")
                         .font(.headline)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     
-                    let progress = debt.paidAmount / debt.currentBalance
-                    ZStack {
-                        Circle()
-                            .stroke(Color.blue.opacity(0.2), lineWidth: 15)
-                        Circle()
-                            .trim(from: 0, to: CGFloat(progress))
-                            .stroke(Color.blue, lineWidth: 15)
-                            .rotationEffect(.degrees(-90))
-                        Text("\(Int(progress * 100))%")
-                            .font(.title2)
-                            .fontWeight(.bold)
+                    let paidAmount = debt.paidAmount
+                    let totalAmount = debt.currentBalance
+                    let remainingAmount = totalAmount - paidAmount
+                    
+                    Chart {
+                        SectorMark(
+                            angle: .value("Paid", paidAmount),
+                            innerRadius: .ratio(0.6),
+                            angularInset: 1.5
+                        )
+                        .cornerRadius(3)
+                        .foregroundStyle(Color("MainColor"))
+                        
+                        SectorMark(
+                            angle: .value("Remaining", remainingAmount),
+                            innerRadius: .ratio(0.6),
+                            angularInset: 1.5
+                        )
+                        .cornerRadius(3)
+                        .foregroundStyle(Color("MainColor").opacity(0.2))
                     }
-                    .frame(width: 100, height: 100)
+                    .frame(height: 200)
+                    .chartBackground { chartProxy in
+                        GeometryReader { geometry in
+                            let frame = geometry[chartProxy.plotFrame!]
+                            VStack {
+                                Text("\(Int((paidAmount/totalAmount) * 100))%")
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                                Text("Complete")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                            .position(
+                                x: frame.midX,
+                                y: frame.midY
+                            )
+                        }
+                    }
                     
                     VStack(spacing: 10) {
                         HStack {
                             Text("Principle Paid")
                             Spacer()
-                            Text("LKR \(String(format: "%.2f", debt.paidAmount))")
+                            Text("LKR \(String(format: "%.2f", paidAmount))")
                                 .foregroundColor(.green)
                         }
                         HStack {
                             Text("Balance")
                             Spacer()
-                            Text("LKR \(String(format: "%.2f", debt.currentBalance - debt.paidAmount))")
+                            Text("LKR \(String(format: "%.2f", remainingAmount))")
                                 .foregroundColor(.red)
                         }
                     }
@@ -167,18 +353,242 @@ struct ProgressView: View {
                 .background(Color(.systemGray6))
                 .cornerRadius(10)
                 
-                // Payoff Timeline Chart
-                VStack(alignment: .leading, spacing: 15) {
+                // New Cost Breakdown Section
+                VStack(spacing: 20) {
+                    Text("Cost Breakdown")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    let breakdown = calculateTotalInterest()
+                    let totalCost = breakdown.principal + breakdown.interest
+                    
+                    // Total Cost Row - Moved to the top
+                    VStack(spacing: 4) {
+                        Text("Total Cost")
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+                        Text("LKR \(String(format: "%.2f", totalCost))")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                    
+                    // Swift Charts Implementation
+                    Chart {
+                        SectorMark(
+                            angle: .value("Amount", breakdown.principal),
+                            innerRadius: .ratio(0.6),
+                            angularInset: 1.5
+                        )
+                        .foregroundStyle(Color("MainColor"))
+                        .cornerRadius(3)
+                        
+                        SectorMark(
+                            angle: .value("Amount", breakdown.interest),
+                            innerRadius: .ratio(0.6),
+                            angularInset: 1.5
+                        )
+                        .foregroundStyle(Color.red.opacity(0.7))
+                        .cornerRadius(3)
+                    }
+                    .frame(height: 200)
+                    
+                    // Breakdown Details
+                    VStack(spacing: 15) {
+                        // Principal Row
+                        HStack {
+                            HStack {
+                                Circle()
+                                    .fill(Color("MainColor"))
+                                    .frame(width: 12, height: 12)
+                                Text("Principal Amount")
+                            }
+                            Spacer()
+                            Text("LKR \(String(format: "%.2f", breakdown.principal))")
+                                .fontWeight(.medium)
+                        }
+                        
+                        // Interest Row
+                        HStack {
+                            HStack {
+                                Circle()
+                                    .fill(Color.red.opacity(0.7))
+                                    .frame(width: 12, height: 12)
+                                Text("Total Interest")
+                            }
+                            Spacer()
+                            Text("LKR \(String(format: "%.2f", breakdown.interest))")
+                                .fontWeight(.medium)
+                                .foregroundColor(.red)
+                        }
+                    }
+                    
+                    // Interest Insight
+                    if breakdown.interest < Double.infinity {
+                        Text("You'll pay \(String(format: "%.1f", (breakdown.interest / breakdown.principal) * 100))% of your principal in interest over the loan term.")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                            .multilineTextAlignment(.center)
+                            .padding(.top)
+                    } else {
+                        Text("Warning: Your current payment is too low to fully pay off this debt. Consider increasing your payment amount.")
+                            .font(.caption)
+                            .foregroundColor(.red)
+                            .multilineTextAlignment(.center)
+                            .padding(.top)
+                    }
+                }
+                .padding()
+                .background(Color(.systemGray6))
+                .cornerRadius(10)
+
+                
+                // New Monthly Payment Breakdown Section
+                VStack(spacing: 20) {
+                    Text("Monthly Payment Breakdown")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    let breakdowns = calculatePaymentBreakdowns()
+                    
+                    Chart {
+                        ForEach(breakdowns) { breakdown in
+                            BarMark(
+                                x: .value("Month", breakdown.month),
+                                y: .value("Amount", breakdown.principal),
+                                stacking: .normalized
+                            )
+                            .foregroundStyle(Color("MainColor"))
+                            
+                            BarMark(
+                                x: .value("Month", breakdown.month),
+                                y: .value("Amount", breakdown.interest),
+                                stacking: .normalized
+                            )
+                            .foregroundStyle(Color.red.opacity(0.7))
+                        }
+                    }
+                    .frame(height: 200)
+                    .chartYAxis {
+                        AxisMarks { value in
+                            if let amount = value.as(Double.self) {
+                                AxisValueLabel("LKR \(Int(amount))")
+                            }
+                        }
+                    }
+                    
+                    // Legend
+                    HStack(spacing: 20) {
+                        HStack {
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color("MainColor"))
+                                .frame(width: 20, height: 20)
+                            Text("Principal")
+                        }
+                        HStack {
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color.red.opacity(0.7))
+                                .frame(width: 20, height: 20)
+                            Text("Interest")
+                        }
+                    }
+                    
+                    // Detailed Monthly Breakdown
+                    VStack(spacing: 15) {
+                        if let firstMonth = breakdowns.first {
+                            Text("First Payment Breakdown")
+                                .font(.subheadline)
+                                .padding(.bottom, 5)
+                            
+                            // Principal Payment
+                            HStack {
+                                Text("Principal Payment")
+                                Spacer()
+                                Text("LKR \(String(format: "%.2f", firstMonth.principal))")
+                                    .foregroundColor(Color("MainColor"))
+                            }
+                            
+                            // Interest Payment
+                            HStack {
+                                Text("Interest Payment")
+                                Spacer()
+                                Text("LKR \(String(format: "%.2f", firstMonth.interest))")
+                                    .foregroundColor(.red)
+                            }
+                            
+                            Divider()
+                            
+                            // Total Payment
+                            HStack {
+                                Text("Total Monthly Payment")
+                                    .fontWeight(.semibold)
+                                Spacer()
+                                Text("LKR \(String(format: "%.2f", firstMonth.principal + firstMonth.interest))")
+                                    .fontWeight(.semibold)
+                            }
+                            
+                            // Percentage Breakdown
+                            Text("\(Int((firstMonth.principal / (firstMonth.principal + firstMonth.interest)) * 100))% goes to principal")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                                .padding(.top, 5)
+                        }
+                    }
+                    .padding(.top)
+                }
+                .padding()
+                .background(Color(.systemGray6))
+                .cornerRadius(10)
+                
+                // New Payoff Timeline section
+                VStack(spacing: 20) {
                     Text("Payoff Timeline")
                         .font(.headline)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     
-                    // Simple line chart representation
-                    Path { path in
-                        path.move(to: CGPoint(x: 0, y: 0))
-                        path.addLine(to: CGPoint(x: 300, y: 150))
+                    Chart {
+                        ForEach(payoffPoints) { point in
+                            LineMark(
+                                x: .value("Month", point.month),
+                                y: .value("Balance", point.balance)
+                            )
+                            .interpolationMethod(.catmullRom)
+                            .foregroundStyle(Color("MainColor"))
+                            
+                            AreaMark(
+                                x: .value("Month", point.month),
+                                y: .value("Balance", point.balance)
+                            )
+                            .interpolationMethod(.catmullRom)
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [
+                                        Color("MainColor").opacity(0.3),
+                                        Color("MainColor").opacity(0.1)
+                                    ],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                        }
                     }
-                    .stroke(Color.blue, lineWidth: 2)
                     .frame(height: 200)
+                    .chartYAxis {
+                        AxisMarks(position: .leading) { value in
+                            if let balance = value.as(Double.self) {
+                                AxisValueLabel("LKR \(String(format: "%.0f", balance))")
+                            }
+                        }
+                    }
+                    .chartXAxis {
+                        AxisMarks { value in
+                            let month = value.as(String.self) ?? ""
+                            if payoffPoints.count <= 12 || value.index % 3 == 0 {
+                                AxisValueLabel(month)
+                            }
+                        }
+                    }
                 }
                 .padding()
                 .background(Color(.systemGray6))
@@ -188,6 +598,7 @@ struct ProgressView: View {
         }
     }
 }
+
 
 struct TransactionsView: View {
     @State private var isUpcomingSelected = true // Track which tab is selected
@@ -582,7 +993,6 @@ struct EditDetailView: View {
         }
     }
 }
-
 
 struct CarLoanView_Previews: PreviewProvider {
     static var previews: some View {

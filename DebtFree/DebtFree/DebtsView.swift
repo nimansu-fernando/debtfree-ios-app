@@ -261,7 +261,9 @@ struct DebtView: View {
                         
                         // Filtered Debt cards
                         ForEach(filteredDebts, id: \.self) { debt in
-                            NavigationLink(destination: DebtDetailsView(debt: debt)) {
+                            NavigationLink(destination: DebtDetailsView(debt: debt)
+                                .navigationTitle(debt.debtName ?? "Debt Details")
+                            ) {
                                 DebtCard(debt: DebtList(
                                     name: debt.debtName ?? "Unknown",
                                     balance: (debt.currentBalance - debt.paidAmount),
@@ -312,7 +314,6 @@ struct DebtView: View {
     }
 }
 
-// Structs remain unchanged
 
 struct DebtCategory: Identifiable {
     let id = UUID()
