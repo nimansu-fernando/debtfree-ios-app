@@ -15,7 +15,7 @@
         <attribute name="paidAmount" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="paymentFrequency" optional="YES" attributeType="String"/>
         <attribute name="userID" optional="YES" attributeType="String"/>
-        <relationship name="payments" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Payment"/>
+        <relationship name="payments" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Payment" inverseName="debt" inverseEntity="Payment"/>
     </entity>
     <entity name="Item" representedClassName="Item" syncable="YES" codeGenerationType="class">
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
@@ -29,6 +29,6 @@
         <attribute name="paymentID" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="status" optional="YES" attributeType="String"/>
         <attribute name="userID" optional="YES" attributeType="String"/>
-        <relationship name="debt" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Debt"/>
+        <relationship name="debt" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Debt" inverseName="payments" inverseEntity="Debt"/>
     </entity>
 </model>

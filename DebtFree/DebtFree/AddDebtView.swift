@@ -385,7 +385,7 @@ struct AddDebtView: View {
         do {
             let payments = try viewContext.fetch(fetchRequest)
             print("Fetched \(payments.count) Payment records:")
-            var totalInterestPaid = 0.0
+            //var totalInterestPaid = 0.0
             var totalToPayBack = 0.0
             
             for payment in payments {

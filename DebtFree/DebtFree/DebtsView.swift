@@ -303,7 +303,7 @@ struct DebtView: View {
                     updateFetchRequest()
                 }
             }
-            .onChange(of: userID) { newValue in
+            .onChange(of: userID) { oldValue, newValue in
                 updateFetchRequest()
             }
         }
