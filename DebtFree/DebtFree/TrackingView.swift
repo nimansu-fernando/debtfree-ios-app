@@ -6,32 +6,95 @@
 //
 
 import SwiftUI
+import CoreData
+import FirebaseAuth
 
-// MARK: - Models
-struct DebtItem: Identifiable {
+struct PaymentSection: Identifiable {
     let id = UUID()
     let title: String
-    let amount: Double
-    let balance: Double
-    let totalDebtBalance: Double
-    let dueDate: Date
-    let isMinimum: Bool = true
-    let isPaid: Bool
-    
-    // Init with default isPaid value for backward compatibility
-    init(title: String, amount: Double, balance: Double, totalDebtBalance: Double, dueDate: Date, isPaid: Bool = false) {
-        self.title = title
-        self.amount = amount
-        self.balance = balance
-        self.totalDebtBalance = totalDebtBalance
-        self.dueDate = dueDate
-        self.isPaid = isPaid
-    }
+    let items: [Payment]
 }
 
-// MARK: - Main View
 struct TrackingView: View {
+    @Environment(\.managedObjectContext) private var viewContext
     @State private var isUpcomingSelected = true
+    @State private var userID: String = ""
+    
+    // Fetch requests for payments
+    @FetchRequest private var upcomingPayments: FetchedResults<Payment>
+    @FetchRequest private var completedPayments: FetchedResults<Payment>
+    
+    // Initialize with dynamic FetchRequest based on userID
+    init() {
+        // Initial fetch request for upcoming payments
+        let upcomingRequest: NSFetchRequest<Payment> = Payment.fetchRequest()
+        upcomingRequest.sortDescriptors = [NSSortDescriptor(keyPath: \Payment.paymentDueDate, ascending: true)]
+        upcomingRequest.predicate = NSPredicate(format: "userID == %@ AND status == %@", "", "upcoming")
+        _upcomingPayments = FetchRequest(fetchRequest: upcomingRequest)
+        
+        // Initial fetch request for completed payments
+        let completedRequest: NSFetchRequest<Payment> = Payment.fetchRequest()
+        completedRequest.sortDescriptors = [NSSortDescriptor(keyPath: \Payment.paymentDueDate, ascending: false)]
+        completedRequest.predicate = NSPredicate(format: "userID == %@ AND status == %@", "", "completed")
+        _completedPayments = FetchRequest(fetchRequest: completedRequest)
+    }
+    
+    // Computed properties for organizing payments into sections
+    private var currentMonthPayments: [Payment] {
+        let currentDate = Date()
+        let calendar = Calendar.current
+        let currentMonth = calendar.startOfMonth(for: currentDate)
+        let nextMonth = calendar.date(byAdding: .month, value: 1, to: currentMonth)!
+        
+        return upcomingPayments.filter { payment in
+            guard let dueDate = payment.paymentDueDate else { return false }
+            return dueDate >= currentMonth && dueDate < nextMonth
+        }
+    }
+    
+    private var nextMonthPayments: [Payment] {
+        let currentDate = Date()
+        let calendar = Calendar.current
+        let nextMonth = calendar.date(byAdding: .month, value: 1, to: calendar.startOfMonth(for: currentDate))!
+        let followingMonth = calendar.date(byAdding: .month, value: 1, to: nextMonth)!
+        
+        return upcomingPayments.filter { payment in
+            guard let dueDate = payment.paymentDueDate else { return false }
+            return dueDate >= nextMonth && dueDate < followingMonth
+        }
+    }
+    
+    private var next3MonthsPayments: [Payment] {
+        let currentDate = Date()
+        let calendar = Calendar.current
+        let startDate = calendar.date(byAdding: .month, value: 2, to: calendar.startOfMonth(for: currentDate))!
+        let endDate = calendar.date(byAdding: .month, value: 5, to: calendar.startOfMonth(for: currentDate))!
+        
+        return upcomingPayments.filter { payment in
+            guard let dueDate = payment.paymentDueDate else { return false }
+            return dueDate >= startDate && dueDate < endDate
+        }
+    }
+    
+    private var upcomingSections: [PaymentSection] {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MMMM yyyy"
+        
+        return [
+            PaymentSection(
+                title: "\(dateFormatter.string(from: Date())) Remaining",
+                items: currentMonthPayments
+            ),
+            PaymentSection(
+                title: dateFormatter.string(from: Calendar.current.date(byAdding: .month, value: 1, to: Date())!),
+                items: nextMonthPayments
+            ),
+            PaymentSection(
+                title: "Next 3 Months",
+                items: next3MonthsPayments
+            )
+        ]
+    }
     
     var body: some View {
         NavigationView {
@@ -78,120 +141,89 @@ struct TrackingView: View {
                     }
                 }
                 .padding(.leading)
-                .padding(.bottom, 20) 
+                .padding(.bottom, 20)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 
                 // Content
                 if isUpcomingSelected {
-                    UpcomingView(octoberItems: octoberItems, novemberItems: novemberItems)
+                    UpcomingPaymentsView(sections: upcomingSections)
                 } else {
-                    CompletedView()
+                    CompletedPaymentsView(payments: completedPayments)
                 }
             }
             .background(Color(UIColor.systemGray6))
+            .onAppear {
+                if let user = Auth.auth().currentUser {
+                    self.userID = user.uid
+                    updateFetchRequests()
+                }
+            }
+            .onChange(of: userID) { oldValue, newValue in
+                updateFetchRequests()
+            }
         }
     }
     
-    // Sample data for upcoming
-    var octoberItems: [DebtItem] {
-        [
-            DebtItem(title: "Car",
-                    amount: 80000.00,
-                    balance: 2000000.00,
-                    totalDebtBalance: 5000000.00,
-                    dueDate: Date.from(year: 2024, month: 10, day: 23)),
-            DebtItem(title: "Degree Loan",
-                    amount: 40000.00,
-                    balance: 600000.00,
-                    totalDebtBalance: 800000.00,
-                    dueDate: Date.from(year: 2024, month: 10, day: 29))
-        ]
-    }
-    
-    var novemberItems: [DebtItem] {
-        [
-            DebtItem(title: "Medical",
-                    amount: 5000.00,
-                    balance: 70000.00,
-                    totalDebtBalance: 80000.00,
-                    dueDate: Date.from(year: 2024, month: 11, day: 10)),
-            DebtItem(title: "Car",
-                    amount: 80000.00,
-                    balance: 2000000.00,
-                    totalDebtBalance: 5000000.00,
-                    dueDate: Date.from(year: 2024, month: 11, day: 23))
-        ]
+    private func updateFetchRequests() {
+        upcomingPayments.nsPredicate = NSPredicate(format: "userID == %@ AND status == %@", userID, "upcoming")
+        completedPayments.nsPredicate = NSPredicate(format: "userID == %@ AND status == %@", userID, "completed")
     }
 }
 
-// MARK: - Upcoming View
-struct UpcomingView: View {
-    let octoberItems: [DebtItem]
-    let novemberItems: [DebtItem]
+struct UpcomingPaymentsView: View {
+    let sections: [PaymentSection]
     
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
-                MonthSection(title: "October 2024 Remaining", items: octoberItems)
-                MonthSection(title: "November 2024", items: novemberItems)
+                ForEach(sections) { section in
+                    if !section.items.isEmpty {
+                        MonthSection(title: section.title, items: section.items)
+                    }
+                }
             }
             .padding()
         }
     }
 }
 
-// MARK: - Completed View
-struct CompletedView: View {
+struct CompletedPaymentsView: View {
+    let payments: FetchedResults<Payment>
+    
+    private var paymentsByMonth: [String: [Payment]] {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MMMM yyyy"
+        
+        var grouped: [String: [Payment]] = [:]
+        for payment in payments {
+            if let date = payment.paymentDueDate {
+                let key = dateFormatter.string(from: date)
+                if grouped[key] == nil {
+                    grouped[key] = []
+                }
+                grouped[key]?.append(payment)
+            }
+        }
+        return grouped
+    }
+    
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
-                MonthSection(title: "September 2024", items: septemberItems)
-                MonthSection(title: "August 2024", items: augustItems)
+                ForEach(Array(paymentsByMonth.keys.sorted().reversed()), id: \.self) { month in
+                    if let monthPayments = paymentsByMonth[month] {
+                        MonthSection(title: month, items: monthPayments)
+                    }
+                }
             }
             .padding()
         }
     }
-    
-    // Sample data for completed transactions
-    var septemberItems: [DebtItem] {
-        [
-            DebtItem(title: "Car",
-                    amount: 80000.00,
-                    balance: 2000000.00,
-                    totalDebtBalance: 5000000.00,
-                    dueDate: Date.from(year: 2024, month: 9, day: 23),
-                    isPaid: true),
-            DebtItem(title: "Degree Loan",
-                    amount: 40000.00,
-                    balance: 600000.00,
-                    totalDebtBalance: 800000.00,
-                    dueDate: Date.from(year: 2024, month: 9, day: 29),
-                    isPaid: true)
-        ]
-    }
-    
-    var augustItems: [DebtItem] {
-        [
-            DebtItem(title: "Medical",
-                    amount: 5000.00,
-                    balance: 70000.00,
-                    totalDebtBalance: 80000.00,
-                    dueDate: Date.from(year: 2024, month: 8, day: 10),
-                    isPaid: true),
-            DebtItem(title: "Car",
-                    amount: 80000.00,
-                    balance: 2000000.00,
-                    totalDebtBalance: 5000000.00,
-                    dueDate: Date.from(year: 2024, month: 8, day: 23),
-                    isPaid: true)
-        ]
-    }
 }
 
-// MARK: - Supporting Views
 struct MonthSection: View {
     let title: String
-    let items: [DebtItem]
+    let items: [Payment]
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -199,9 +231,9 @@ struct MonthSection: View {
                 .font(.headline)
             
             VStack(spacing: 0) {
-                ForEach(items) { item in
-                    DebtItemView(item: item)
-                    if item.id != items.last?.id {
+                ForEach(items) { payment in
+                    PaymentItemView(payment: payment)
+                    if payment.id != items.last?.id {
                         Divider()
                             .padding(.leading, 60)
                     }
@@ -213,66 +245,46 @@ struct MonthSection: View {
     }
 }
 
-struct DebtItemView: View {
-    let item: DebtItem
+struct PaymentItemView: View {
+    let payment: Payment
+    @Environment(\.managedObjectContext) private var viewContext
+    @State private var debt: Debt?
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             // Top Row - Title, Amount and Chevron
             HStack(spacing: 16) {
                 // Clock icon
-                Image(systemName: "clock")
+                Image(systemName: payment.status == "completed" ? "checkmark.circle.fill" : "clock")
                     .font(.system(size: 24))
-                    .foregroundColor(.blue)
+                    .foregroundColor(payment.status == "completed" ? .green : .blue)
                     .frame(width: 40, height: 40)
-                    .background(Color.blue.opacity(0.1))
+                    .background(payment.status == "completed" ? Color.green.opacity(0.1) : Color.blue.opacity(0.1))
                     .clipShape(Circle())
                 
                 // Title and Amount
                 HStack {
-                    Text(item.title)
+                    Text(debt?.debtName ?? "Unknown")
                         .font(.system(size: 18))
                     Spacer()
-                    Text("LKR \(String(format: "%.2f", item.amount))")
+                    Text("LKR \(String(format: "%.2f", payment.balance))")
                         .font(.system(size: 18))
                     Image(systemName: "chevron.right")
                         .foregroundColor(.gray)
                 }
             }
             
-            // Balance Section
-            HStack(spacing: 4) {
-                Text("Balance ")
-                    .font(.system(size: 14))
-                    .foregroundColor(.gray)
-                Spacer()
-                Text("LKR \(String(format: "%.2f", item.balance))")
-                    .font(.system(size: 14))
-                    .foregroundColor(.gray)
-            }
-            .padding(.leading, 56)
-            
-            // Total Debt Balance Section
+            // Payment Date and Status
             HStack {
-                Text("Total Debt Balance ")
-                    .font(.system(size: 14))
-                    .foregroundColor(.gray)
-                Spacer()
-                Text("LKR \(String(format: "%.2f", item.totalDebtBalance))")
-                    .font(.system(size: 14))
-                    .foregroundColor(.gray)
-            }
-            .padding(.leading, 56)
-            
-            // Date and Status Tag
-            HStack {
-                Text(item.dueDate.formatted(.custom("MMM dd, yyyy")))
-                    .font(.system(size: 16))
-                    .foregroundColor(.black)
+                if let dueDate = payment.paymentDueDate {
+                    Text(dueDate.formatted(.dateTime.day().month().year()))
+                        .font(.system(size: 16))
+                        .foregroundColor(.black)
+                }
                 
                 Spacer()
                 
-                if item.isPaid {
+                if payment.status == "completed" {
                     // PAID tag with checkmark
                     HStack(spacing: 4) {
                         Image(systemName: "checkmark.circle.fill")
@@ -283,9 +295,9 @@ struct DebtItemView: View {
                     }
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
-                    .background(Color.blue)
+                    .background(Color.green)
                     .cornerRadius(6)
-                } else if item.isMinimum {
+                } else {
                     Text("Minimum")
                         .font(.system(size: 14))
                         .foregroundColor(.white)
@@ -296,33 +308,46 @@ struct DebtItemView: View {
                 }
             }
             .padding(.leading, 56)
+            
+            // Show paid date for completed payments
+            if payment.status == "completed", let paidDate = payment.paidDate {
+                Text("Paid on \(paidDate.formatted(.dateTime.day().month().year()))")
+                    .font(.system(size: 14))
+                    .foregroundColor(.green)
+                    .padding(.leading, 56)
+            }
         }
         .padding(.vertical, 16)
         .padding(.horizontal, 16)
+        .onAppear {
+            fetchDebtDetails()
+        }
+    }
+    
+    private func fetchDebtDetails() {
+        guard let debtID = payment.debtID else { return }
+        
+        let request: NSFetchRequest<Debt> = Debt.fetchRequest()
+        request.predicate = NSPredicate(format: "debtID == %@", debtID as CVarArg)
+        request.fetchLimit = 1
+        
+        do {
+            let results = try viewContext.fetch(request)
+            self.debt = results.first
+        } catch {
+            print("Error fetching debt details: \(error)")
+        }
     }
 }
 
-// MARK: - Helpers
-extension Date {
-    static func from(year: Int, month: Int, day: Int) -> Date {
-        var components = DateComponents()
-        components.year = year
-        components.month = month
-        components.day = day
-        return Calendar.current.date(from: components) ?? Date()
+// Helper extension for date calculations
+extension Calendar {
+    func startOfMonth(for date: Date) -> Date {
+        let components = dateComponents([.year, .month], from: date)
+        return self.date(from: components) ?? date
     }
 }
 
-extension FormatStyle where Self == Date.FormatStyle {
-    static func custom(_ format: String) -> Date.FormatStyle {
-        Date.FormatStyle()
-            .month(.abbreviated)
-            .day(.twoDigits)
-            .year(.defaultDigits)
-    }
-}
-
-// MARK: - Preview
 struct TrackingView_Previews: PreviewProvider {
     static var previews: some View {
         TrackingView()

@@ -56,9 +56,9 @@ struct ProfileView: View {
                         Toggle(isOn: $isFaceIDEnabled) {
                            // Text(isFaceIDEnabled ? "Enabled" : "Disabled")
                         }
-                        .onChange(of: isFaceIDEnabled, perform: { value in
-                            updateFaceIDSetting(enabled: value)
-                        })
+                        .onChange(of: isFaceIDEnabled) { oldValue, newValue in
+                            updateFaceIDSetting(enabled: newValue)
+                        }
                     }
                 }
                 
