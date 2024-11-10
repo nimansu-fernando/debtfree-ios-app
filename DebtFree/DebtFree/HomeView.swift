@@ -6,13 +6,124 @@
 //
 
 import SwiftUI
+import CoreData
+import FirebaseAuth
+import Charts
 
 struct HomeView: View {
-    private let userName = "Lakshan Fernando" // Hardcoded username
-    @State private var progress: Double = 0.224
-    @State private var paidAmount: Double = 48037.98
-    @State private var remainingAmount: Double = 165962.19
-
+    private let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM yyyy"
+        return formatter
+    }()
+    
+    @State private var userName: String = ""
+    @State private var progress: Double = 0.0
+    @State private var paidAmount: Double = 0.0
+    @State private var remainingAmount: Double = 0.0
+    @State private var yearsRemaining: Int = 0
+    @State private var monthsRemaining: Int = 0
+    @State private var targetDate: Date = Date()
+    @State private var hasActiveDebts: Bool = false
+    @State private var showingAddDebtSheet = false
+    
+    // CoreData fetch request
+    @FetchRequest private var debts: FetchedResults<Debt>
+    
+    init() {
+        let request: NSFetchRequest<Debt> = Debt.fetchRequest()
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \Debt.debtName, ascending: true)]
+        request.predicate = NSPredicate(format: "userID == %@", "")
+        _debts = FetchRequest(fetchRequest: request)
+    }
+    
+    // Function to get username from email
+    private func getUsernameFromEmail(_ email: String) -> String {
+        if let atIndex = email.firstIndex(of: "@") {
+            return String(email[..<atIndex])
+        }
+        return email
+    }
+    
+    // Calculate all debt-related metrics
+    private func calculateDebtMetrics() {
+        // Calculate total paid amount
+        paidAmount = debts.reduce(0) { $0 + $1.paidAmount }
+        
+        // Calculate remaining balance
+        let totalBalance = debts.reduce(0) { $0 + ($1.currentBalance - $1.paidAmount) }
+        remainingAmount = totalBalance
+        
+        // Calculate progress percentage
+        let totalDebt = paidAmount + remainingAmount
+        progress = totalDebt > 0 ? paidAmount / totalDebt : 0
+        
+        // Update hasActiveDebts
+        self.hasActiveDebts = totalDebt > 0
+        
+        // Calculate debt-free date
+        calculateDebtFreeDate()
+    }
+    
+    // Calculate payoff period for individual debt in total months
+    private func calculatePayoffPeriod(for debt: Debt) -> Int {
+        let remainingBalance = debt.currentBalance - debt.paidAmount
+        let monthlyPayment = debt.minimumPayment
+        let interestRate = debt.apr / 100 / 12 // Convert annual rate to monthly
+        
+        // If there's no monthly payment or the debt is paid off
+        if monthlyPayment <= 0 || remainingBalance <= 0 {
+            return 0
+        }
+        
+        // Calculate number of months needed to pay off the debt with interest
+        var numberOfMonths: Double
+        
+        if interestRate > 0 {
+            let monthlyRate = interestRate
+            let expression = (monthlyRate * remainingBalance) / monthlyPayment
+            numberOfMonths = -log(1 - expression) / log(1 + monthlyRate)
+        } else {
+            // Simple division if no interest
+            numberOfMonths = remainingBalance / monthlyPayment
+        }
+        
+        // Round up to the nearest month
+        return Int(ceil(numberOfMonths))
+    }
+    
+    // Calculate when user will be debt-free
+    private func calculateDebtFreeDate() {
+        // Get payoff periods (in months) for all debts
+        let payoffPeriods = debts.map { calculatePayoffPeriod(for: $0) }
+        
+        // Find the maximum payoff period
+        if let maxPayoffPeriod = payoffPeriods.max(), maxPayoffPeriod > 0 {
+            // Calculate years and months
+            yearsRemaining = maxPayoffPeriod / 12
+            monthsRemaining = maxPayoffPeriod % 12
+            
+            // Calculate target date based on the maximum period
+            let calendar = Calendar.current
+            targetDate = calendar.date(byAdding: .month, value: maxPayoffPeriod, to: Date()) ?? Date()
+            hasActiveDebts = true
+        } else {
+            // No debts or all debts paid off
+            targetDate = Date()
+            yearsRemaining = 0
+            monthsRemaining = 0
+            hasActiveDebts = false
+        }
+    }
+    
+    // Progress Chart Data
+    private var progressChartData: [(String, Double)] {
+        [
+            ("Paid", paidAmount),
+            ("Remaining", remainingAmount)
+        ]
+    }
+    
     var body: some View {
         NavigationStack {
             VStack {
@@ -21,30 +132,30 @@ struct HomeView: View {
                     Text("Hi, \(userName)!")
                         .font(.system(size: 25, weight: .bold))
                         .foregroundColor(.primary)
-                        .frame(maxWidth: .infinity, alignment: .leading) // Align left
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     
                     HStack {
                         Image(systemName: "bell")
-                            .foregroundColor(.blue)
+                            .font(.system(size: 24))
+                            .foregroundColor(Color("MainColor"))
                         
-                        // Profile icon wrapped in NavigationLink
                         NavigationLink(destination: ProfileView()) {
                             Image(systemName: "person.circle.fill")
-                                .foregroundColor(.blue)
+                                .font(.system(size: 28))
+                                .foregroundColor(Color("MainColor"))
                         }
                     }
                 }
                 .padding()
-                .background(Color.white) // Custom header background
+                .background(Color.white)
                 .shadow(radius: 1)
                 
-                // ScrollView and content
                 ScrollView {
                     VStack(spacing: 20) {
-                        // Header Card
+                        // Header Card - Debt-Free Countdown
                         ZStack {
                             Rectangle()
-                                .fill(Color(hex: "003F59"))
+                                .fill(Color("CountDownCardColor"))
                                 .frame(height: 180)
                                 .cornerRadius(12)
                             
@@ -54,15 +165,17 @@ struct HomeView: View {
                                     .font(.system(size: 20, weight: .bold))
                                     .accessibilityLabel("Debt-Free Countdown")
                                 
-                                Text("FEBRUARY 2026")
-                                    .foregroundColor(.white.opacity(0.9))
-                                    .font(.system(size: 18))
+                                if hasActiveDebts {
+                                    Text(dateFormatter.string(from: targetDate))
+                                        .foregroundColor(.white.opacity(0.9))
+                                        .font(.system(size: 18))
+                                }
                                 
                                 HStack {
-                                    TimeBlock(value: "1", label: "years")
-                                    TimeBlock(value: "4", label: "months")
+                                    TimeBlock(value: "\(yearsRemaining)", label: "years")
+                                    TimeBlock(value: "\(monthsRemaining)", label: "months")
                                 }
-                                .padding(.top, 30)
+                                .padding(.top, hasActiveDebts ? 30 : 50)
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding()
@@ -76,83 +189,225 @@ struct HomeView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                         .shadow(radius: 0.5)
                         
+                        // Quick Actions Card (Modified)
+                        QuickActionsCard(showingAddDebtSheet: $showingAddDebtSheet)
+                        
                         // Progress Card
-                        VStack(alignment: .leading, spacing: 30) {
+                        VStack(alignment: .leading, spacing: 25) {
                             Text("Payoff Progress")
-                                .font(.system(size: 20, weight: .bold))
+                                .font(.system(size: 22, weight: .bold))
+                                .padding(.bottom, 5)
                             
-                            HStack(alignment: .center, spacing: 40) {
-                                VStack {
-                                    ZStack {
-                                        Circle()
-                                            .stroke(lineWidth: 16)
-                                            .foregroundColor(Color.gray.opacity(0.2))
-                                        
-                                        Circle()
-                                            .trim(from: 0.0, to: progress)
-                                            .stroke(AngularGradient(gradient: Gradient(colors: [Color.blue, Color.cyan]), center: .center), lineWidth: 16)
-                                            .rotationEffect(.degrees(-90))
-                                            .animation(.linear, value: progress)
-                                        
-                                        VStack {
-                                            Text("\(Int(progress * 100))%")
-                                                .font(.system(size: 24, weight: .bold))
-                                            Text("paid")
-                                                .foregroundColor(.gray)
-                                                .font(.system(size: 16))
-                                        }
+                            // Chart Section
+                            VStack(spacing: 30) {
+                                // Swift Charts Donut Chart
+                                Chart(progressChartData, id: \.0) { item in
+                                    SectorMark(
+                                        angle: .value("Amount", item.1),
+                                        innerRadius: .ratio(0.75),
+                                        angularInset: 2.0
+                                    )
+                                    .cornerRadius(3)
+                                    .foregroundStyle(by: .value("Category", item.0))
+                                }
+                                .chartForegroundStyleScale([
+                                    "Paid": Color.green.opacity(0.8),
+                                    "Remaining": Color.red.opacity(0.8)
+                                ])
+                                .chartLegend(position: .bottom, alignment: .center, spacing: 20)
+                                .frame(height: 200)
+                                .overlay {
+                                    VStack(spacing: 5) {
+                                        Text("\(Int(progress * 100))%")
+                                            .font(.system(size: 32, weight: .bold))
+                                        Text("PAID")
+                                            .foregroundColor(.gray)
+                                            .font(.system(size: 14, weight: .semibold))
                                     }
-                                    .frame(width: 100, height: 100)
                                 }
                                 
-                                VStack(alignment: .leading, spacing: 12) {
-                                    VStack(alignment: .leading, spacing: 2) {
+                                // Amount Details
+                                HStack(spacing: 40) {
+                                    // Paid Amount
+                                    VStack(alignment: .center, spacing: 8) {
                                         Text("Paid Amount")
                                             .foregroundColor(.gray)
                                             .font(.system(size: 16))
                                         Text("LKR \(String(format: "%.2f", paidAmount))")
-                                            .foregroundColor(.green)
-                                            .font(.system(size: 20, weight: .bold))
+                                            .foregroundColor(.blue)
+                                            .font(.system(size: 17, weight: .bold))
                                     }
                                     
-                                    VStack(alignment: .leading, spacing: 2) {
+                                    // Divider
+                                    Rectangle()
+                                        .fill(Color.gray.opacity(0.2))
+                                        .frame(width: 1, height: 40)
+                                    
+                                    // Balance
+                                    VStack(alignment: .center, spacing: 8) {
                                         Text("Balance")
                                             .foregroundColor(.gray)
                                             .font(.system(size: 16))
                                         Text("LKR \(String(format: "%.2f", remainingAmount))")
                                             .foregroundColor(.red)
-                                            .font(.system(size: 20, weight: .bold))
+                                            .font(.system(size: 17, weight: .bold))
                                     }
                                 }
-                                .padding(.leading, 8)
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .padding(.horizontal)
                             }
-                            .frame(maxWidth: .infinity)
-                            .padding(.horizontal)
-                            .frame(minHeight: 120)
+                            .padding(.vertical, 10)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding()
+                        .padding(20)
                         .background(Color.white)
                         .cornerRadius(12)
                         .shadow(radius: 0.5)
-
-                        // Timeline Graph placeholder
-                        LineGraphView()
-                            .frame(height: 200)
-                            .padding()
-                            .background(Color.white)
-                            .cornerRadius(12)
-                            .shadow(radius: 0.5)
+                        
+                        // Financial Insights Card
+                        FinancialInsightsCard()
                     }
                     .padding()
                 }
             }
             .background(Color(.systemGray6))
+            .onAppear {
+                if let user = Auth.auth().currentUser {
+                    // Use email if displayName is nil, then extract username part
+                    if let displayName = user.displayName, !displayName.isEmpty {
+                        userName = displayName
+                    } else if let email = user.email {
+                        userName = getUsernameFromEmail(email)
+                    } else {
+                        userName = "User"
+                    }
+                    
+                    debts.nsPredicate = NSPredicate(format: "userID == %@", user.uid)
+                    calculateDebtMetrics()
+                }
+            }
+        }
+        .sheet(isPresented: $showingAddDebtSheet) {
+            AddDebtView()
         }
     }
 }
 
+// Quick Actions Card (Simplified)
+struct QuickActionsCard: View {
+    @Binding var showingAddDebtSheet: Bool
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 15) {
+            Text("Quick Actions")
+                .font(.system(size: 22, weight: .bold))
+            
+            HStack(spacing: 20) {
+                QuickActionButton(
+                    icon: "creditcard.fill",
+                    title: "Add Debt",
+                    color: .blue
+                ) {
+                    showingAddDebtSheet.toggle()
+                }
+            }
+        }
+        .padding(20)
+        .background(Color.white)
+        .cornerRadius(12)
+        .shadow(radius: 0.5)
+    }
+}
 
+// Quick Action Button
+struct QuickActionButton: View {
+    let icon: String
+    let title: String
+    let color: Color
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            VStack {
+                Image(systemName: icon)
+                    .font(.system(size: 24))
+                    .foregroundColor(color)
+                Text(title)
+                    .font(.system(size: 14))
+                    .foregroundColor(.primary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .background(color.opacity(0.1))
+            .cornerRadius(8)
+        }
+    }
+}
+
+// Financial Insights Card
+struct FinancialInsightsCard: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 15) {
+            Text("Financial Tips")
+                .font(.system(size: 22, weight: .bold))
+                .padding(.bottom, 5)
+            
+            VStack(spacing: 20) {
+                InsightRow(
+                    icon: "dollarsign.circle.fill",
+                    color: .green,
+                    title: "Snowball Method",
+                    description: "Pay minimum on all debts, then put extra money towards smallest debt first."
+                )
+                
+                InsightRow(
+                    icon: "chart.line.uptrend.xyaxis.circle.fill",
+                    color: .blue,
+                    title: "High Interest First",
+                    description: "Prioritize paying off debts with highest interest rates to save money long-term."
+                )
+                
+                InsightRow(
+                    icon: "creditcard.circle.fill",
+                    color: .orange,
+                    title: "Avoid New Debt",
+                    description: "While paying off existing debt, avoid taking on new credit card charges."
+                )
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(20)
+        .background(Color.white)
+        .cornerRadius(12)
+        .shadow(radius: 0.5)
+        .padding(.bottom)
+    }
+}
+
+struct InsightRow: View {
+    let icon: String
+    let color: Color
+    let title: String
+    let description: String
+    
+    var body: some View {
+        HStack(spacing: 15) {
+            Image(systemName: icon)
+                .font(.system(size: 24))
+                .foregroundColor(color)
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.system(size: 16, weight: .semibold))
+                Text(description)
+                    .font(.system(size: 14))
+                    .foregroundColor(.gray)
+                    .lineLimit(2)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
 
 struct TimeBlock: View {
     let value: String
@@ -168,54 +423,6 @@ struct TimeBlock: View {
                 .foregroundColor(.white.opacity(0.8))
         }
         .padding(.trailing, 20)
-    }
-}
-
-struct LineGraphView: View {
-    var body: some View {
-        GeometryReader { geometry in
-            VStack(alignment: .leading) {
-                Text("Payoff Timeline")
-                    .font(.headline)
-                    .padding(.bottom)
-                
-                Path { path in
-                    path.move(to: CGPoint(x: 0, y: geometry.size.height * 0.8))
-                    path.addCurve(
-                        to: CGPoint(x: geometry.size.width, y: geometry.size.height * 0.2),
-                        control1: CGPoint(x: geometry.size.width * 0.3, y: geometry.size.height * 0.5),
-                        control2: CGPoint(x: geometry.size.width * 0.7, y: geometry.size.height * 0.4)
-                    )
-                }
-                .stroke(Color.blue.opacity(0.5), lineWidth: 2)
-            }
-        }
-    }
-}
-
-extension Color {
-    init(hex: String) {
-        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-        var int: UInt64 = 0
-        Scanner(string: hex).scanHexInt64(&int)
-        let a, r, g, b: UInt64
-        switch hex.count {
-        case 3:
-            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
-        case 6:
-            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
-        case 8:
-            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
-        default:
-            (a, r, g, b) = (255, 0, 0, 0)
-        }
-        self.init(
-            .sRGB,
-            red: Double(r) / 255,
-            green: Double(g) / 255,
-            blue:  Double(b) / 255,
-            opacity: Double(a) / 255
-        )
     }
 }
 

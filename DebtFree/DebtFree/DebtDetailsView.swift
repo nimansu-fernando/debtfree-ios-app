@@ -42,7 +42,7 @@ enum EditableField: String, Identifiable {
 // Add helper functions for payoff calculations
 extension Debt {
     func calculatePayoffDate() -> Date {
-        let balance = self.currentBalance
+        let balance = self.currentBalance - self.paidAmount
         let payment = self.minimumPayment
         let apr = self.apr / 100.0
         
