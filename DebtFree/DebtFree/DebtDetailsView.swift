@@ -127,7 +127,7 @@ struct DebtDetailsView: View {
             TabView(selection: $selectedTab) {
                 ProgressView(debt: debt)
                     .tag(0)
-                TransactionsView()
+                TransactionsView(debt: debt)
                     .tag(1)
                 DetailsView(debt: debt, editingField: $editingField, showEditModal: $showEditModal)
                     .tag(2)
@@ -601,44 +601,73 @@ struct ProgressView: View {
 
 
 struct TransactionsView: View {
-    @State private var isUpcomingSelected = true // Track which tab is selected
+    @Environment(\.managedObjectContext) private var viewContext
+    @State private var isUpcomingSelected = true
+    let debt: Debt // Add debt property to access the debt ID
+    
+    // Fetch requests for upcoming and past payments
+    private var upcomingPayments: FetchRequest<Payment>
+    private var pastPayments: FetchRequest<Payment>
+    
+    init(debt: Debt) {
+        self.debt = debt
+        
+        // Initialize fetch request for upcoming payments
+        self.upcomingPayments = FetchRequest<Payment>(
+            entity: Payment.entity(),
+            sortDescriptors: [NSSortDescriptor(keyPath: \Payment.paymentDueDate, ascending: true)],
+            predicate: NSCompoundPredicate(andPredicateWithSubpredicates: [
+                NSPredicate(format: "debtID == %@", debt.debtID! as CVarArg),
+                NSPredicate(format: "status == %@", "upcoming")
+            ])
+        )
+        
+        // Initialize fetch request for past payments
+        self.pastPayments = FetchRequest<Payment>(
+            entity: Payment.entity(),
+            sortDescriptors: [NSSortDescriptor(keyPath: \Payment.paymentDueDate, ascending: false)],
+            predicate: NSCompoundPredicate(andPredicateWithSubpredicates: [
+                NSPredicate(format: "debtID == %@", debt.debtID! as CVarArg),
+                NSPredicate(format: "status == %@", "completed")
+            ])
+        )
+    }
 
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
                 // Tabs for Upcoming/Past
-                HStack(spacing: 20) { // Adjust spacing to bring tabs closer
+                HStack(spacing: 20) {
                     Button(action: {
-                        isUpcomingSelected = true // Set upcoming tab as selected
+                        isUpcomingSelected = true
                     }) {
                         Text("Upcoming")
-                            .foregroundColor(isUpcomingSelected ? .blue : .gray) // Change color based on selection
+                            .foregroundColor(isUpcomingSelected ? .blue : .gray)
                             .padding(.bottom, 8)
                             .overlay(
                                 Rectangle()
                                     .frame(height: 2)
-                                    .foregroundColor(isUpcomingSelected ? .blue : .clear), // Show underline if selected
+                                    .foregroundColor(isUpcomingSelected ? .blue : .clear),
                                 alignment: .bottom
                             )
                     }
                     
                     Button(action: {
-                        isUpcomingSelected = false // Set past tab as selected
+                        isUpcomingSelected = false
                     }) {
-                        Text("Past")
-                            .foregroundColor(!isUpcomingSelected ? .blue : .gray) // Change color based on selection
+                        Text("Completed")
+                            .foregroundColor(!isUpcomingSelected ? .blue : .gray)
                             .padding(.bottom, 8)
                             .overlay(
                                 Rectangle()
                                     .frame(height: 2)
-                                    .foregroundColor(!isUpcomingSelected ? .blue : .clear), // Show underline if selected
+                                    .foregroundColor(!isUpcomingSelected ? .blue : .clear),
                                 alignment: .bottom
                             )
                     }
                 }
-                .padding(.leading) // Add leading padding for the tab bar
-                .frame(maxWidth: .infinity, alignment: .leading) // Align HStack to the leading edge
-
+                .padding(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 
                 // Content for Upcoming/Past
                 if isUpcomingSelected {
@@ -648,55 +677,101 @@ struct TransactionsView: View {
                             .font(.headline)
                             .padding(.top)
                         
-                        ForEach(0..<4) { _ in
-                            HStack {
-                                Image(systemName: "clock")
-                                    .foregroundColor(.blue)
-                                    .frame(width: 30, height: 30)
-                                    .background(Color.blue.opacity(0.1))
-                                    .clipShape(Circle())
-                                
-                                Text("Nov 15, 2024")
-                                
-                                Spacer()
-                                
-                                Text("LKR 80,000.00")
-                                    .fontWeight(.medium)
+                        if upcomingPayments.wrappedValue.isEmpty {
+                            Text("No upcoming payments")
+                                .foregroundColor(.gray)
+                                .padding()
+                        } else {
+                            ForEach(upcomingPayments.wrappedValue) { payment in
+                                PaymentRowView(payment: payment)
+                                Divider()
                             }
-                            Divider()
                         }
                     }
                     .padding()
                 } else {
                     // Past Transactions Content
                     VStack(alignment: .leading, spacing: 15) {
-                        Text("Past Transactions")
+                        Text("Completed Transactions")
                             .font(.headline)
                             .padding(.top)
                         
-                        ForEach(0..<4) { _ in
-                            HStack {
-                                Image(systemName: "clock")
-                                    .foregroundColor(.gray)
-                                    .frame(width: 30, height: 30)
-                                    .background(Color.gray.opacity(0.1))
-                                    .clipShape(Circle())
-                                
-                                Text("Oct 15, 2024")
-                                
-                                Spacer()
-                                
-                                Text("LKR 70,000.00")
-                                    .fontWeight(.medium)
-                                    .foregroundColor(.gray)
+                        if pastPayments.wrappedValue.isEmpty {
+                            Text("No completed payments")
+                                .foregroundColor(.gray)
+                                .padding()
+                        } else {
+                            ForEach(pastPayments.wrappedValue) { payment in
+                                PaymentRowView(payment: payment, isPast: true)
+                                Divider()
                             }
-                            Divider()
                         }
                     }
                     .padding()
                 }
             }
         }
+    }
+}
+
+// Separate view for payment rows to keep the code organized
+// Separate view for payment rows to keep the code organized
+struct PaymentRowView: View {
+    let payment: Payment
+    var isPast: Bool = false
+    
+    var body: some View {
+        HStack {
+            // Status icon
+            Image(systemName: isPast ? "checkmark.circle.fill" : "clock")
+                .foregroundColor(isPast ? .green : .blue)
+                .frame(width: 30, height: 30)
+                .background(isPast ? Color.green.opacity(0.1) : Color.blue.opacity(0.1))
+                .clipShape(Circle())
+            
+            VStack(alignment: .leading, spacing: 4) {
+                // Due date
+                if let date = payment.paymentDueDate {
+                    Text(date.formatted(date: .numeric, time: .omitted))
+                        .foregroundColor(.primary)
+                }
+                
+                // Status text for upcoming payments
+                /*if !isPast {
+                    Text("Due")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }*/
+            }
+            
+            Spacer()
+            
+            VStack(alignment: .trailing, spacing: 4) {
+                // For upcoming payments, show the balance amount
+                // For completed payments, show the paid amount
+                if isPast {
+                    Text("LKR \(String(format: "%.2f", payment.amountPaid))")
+                        .fontWeight(.medium)
+                        .foregroundColor(.green)
+                    
+                    if let paidDate = payment.paidDate {
+                        Text("Paid on \(paidDate.formatted(date: .numeric, time: .omitted))")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+                } else {
+                    // For upcoming payments, show the minimum payment amount
+                    Text("LKR \(String(format: "%.2f", payment.balance))")
+                        .fontWeight(.medium)
+                        .foregroundColor(.primary)
+                        
+                    Text("Payment Due")
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                }
+            }
+        }
+        .padding(.vertical, 8)
     }
 }
 

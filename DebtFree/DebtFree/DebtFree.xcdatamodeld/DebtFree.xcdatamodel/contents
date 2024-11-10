@@ -4,6 +4,7 @@
         <attribute name="addReminders" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="apr" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="currentBalance" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="debtID" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="debtName" optional="YES" attributeType="String"/>
         <attribute name="debtType" optional="YES" attributeType="String"/>
         <attribute name="lenderName" optional="YES" attributeType="String"/>
@@ -14,8 +15,20 @@
         <attribute name="paidAmount" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="paymentFrequency" optional="YES" attributeType="String"/>
         <attribute name="userID" optional="YES" attributeType="String"/>
+        <relationship name="payments" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Payment"/>
     </entity>
     <entity name="Item" representedClassName="Item" syncable="YES" codeGenerationType="class">
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+    </entity>
+    <entity name="Payment" representedClassName="Payment" syncable="YES" codeGenerationType="class">
+        <attribute name="amountPaid" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="balance" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="debtID" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="paidDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="paymentDueDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="paymentID" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="status" optional="YES" attributeType="String"/>
+        <attribute name="userID" optional="YES" attributeType="String"/>
+        <relationship name="debt" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Debt"/>
     </entity>
 </model>

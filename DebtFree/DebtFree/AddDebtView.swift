@@ -232,6 +232,7 @@ struct AddDebtView: View {
                     Button(action: {
                         addDebt()
                         fetchAndPrintAllDebts()
+                        fetchAndPrintAllPayments()
                         dismiss()
                     }) {
                         Text("Add Debt")
@@ -262,17 +263,18 @@ struct AddDebtView: View {
         }
     }
     
-    // Function to add debt to Core Data
+    // Function to add debt to Core Data and generate payments
     private func addDebt() {
         let newDebt = Debt(context: viewContext)
+        
+        // Generate a unique ID for the debt
+        newDebt.debtID = UUID()  // This assumes debtID is UUID type in Core Data
         newDebt.userID = userID
-        // Unwrap optional strings before saving to Core Data
         newDebt.debtType = debtType.isEmpty ? nil : debtType
         newDebt.debtName = debtName.isEmpty ? nil : debtName
         newDebt.lenderName = lenderName.isEmpty ? nil : lenderName
         newDebt.currentBalance = Double(currentBalance) ?? 0.0
         newDebt.apr = Double(apr) ?? 0.0
-        // Ensure minimumPaymentCalc is not optional when saving
         newDebt.minimumPaymentCalc = minimumPaymentCalc.isEmpty ? nil : minimumPaymentCalc
         newDebt.minimumPayment = Double(minimumPayment) ?? 0.0
         newDebt.paymentFrequency = paymentFrequency.isEmpty ? nil : paymentFrequency
@@ -280,24 +282,19 @@ struct AddDebtView: View {
         newDebt.addReminders = addReminders
         newDebt.notes = notes.isEmpty ? nil : notes
         newDebt.paidAmount = 0.0
-    
+
+        // Generate and save upcoming payments
+        generateUpcomingPayments(for: newDebt)
 
         do {
             try viewContext.save()
-            print("Debt saved successfully.")
+            print("Debt and payments saved successfully with ID: \(newDebt.debtID?.uuidString ?? "unknown")")
         } catch {
             print("Failed to save debt: \(error.localizedDescription)")
-            print("Debugging values: userID: \(userID), debtType: \(debtType), debtName: \(debtName), lenderName: \(lenderName), currentBalance: \(currentBalance), apr: \(apr), minimumPayment: \(minimumPayment), paymentFrequency: \(paymentFrequency)")
-        }
-        
-        
-        let urls = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask)
-        if let applicationSupportURL = urls.first?.appendingPathComponent("Application Support") {
-            print("Database URL: \(applicationSupportURL)")
         }
     }
     
-    // Helper function to fetch and print all saved Debt records
+    // Updated helper function to fetch and print all saved Debt records
     private func fetchAndPrintAllDebts() {
         let fetchRequest: NSFetchRequest<Debt> = Debt.fetchRequest()
         
@@ -306,6 +303,7 @@ struct AddDebtView: View {
             print("Fetched \(debts.count) Debt records:")
             for debt in debts {
                 print("----")
+                print("debtID: \(debt.debtID?.uuidString ?? "N/A")")
                 print("userID: \(debt.userID ?? "N/A")")
                 print("debtType: \(debt.debtType ?? "N/A")")
                 print("debtName: \(debt.debtName ?? "N/A")")
@@ -324,8 +322,98 @@ struct AddDebtView: View {
             print("Failed to fetch debts: \(error.localizedDescription)")
         }
     }
+    
+    // Function to generate upcoming payments until debt is zero
+    private func generateUpcomingPayments(for debt: Debt) {
+        guard let debtID = debt.debtID,  // This is now a String
+              let frequency = debt.paymentFrequency,
+              let startDate = debt.nextPaymentDate else {
+            return
+        }
+        
+        var currentBalance = debt.currentBalance
+        let minimumPayment = debt.minimumPayment
+        var currentDate = startDate
+        let monthlyInterest = (debt.apr / 12.0) / 100.0
+        
+        // Continue generating payments until balance is zero or very close to zero
+        while currentBalance > 0.01 {
+            let payment = Payment(context: viewContext)
+            payment.paymentID = UUID() // Store payment ID as String
+            payment.userID = debt.userID
+            payment.debtID = debtID  // This now works as both are String type
+            
+            // For the last payment, use the remaining balance if it's less than minimum payment
+            let paymentAmount = min(minimumPayment, currentBalance + (currentBalance * monthlyInterest))
+            payment.balance = currentBalance
+            payment.amountPaid = 0.0
+            payment.paymentDueDate = currentDate
+            payment.status = "upcoming"
+            payment.paidDate = nil
+            
+            // Calculate interest for this period
+            let interestAmount = currentBalance * monthlyInterest
+            
+            // Update balance for next payment
+            currentBalance = currentBalance + interestAmount - paymentAmount
+            
+            // Calculate next payment date based on frequency
+            currentDate = calculateNextPaymentDate(from: currentDate, frequency: frequency)
+        }
+    }
+    
+    // Helper function to calculate next payment date
+    private func calculateNextPaymentDate(from date: Date, frequency: String) -> Date {
+        let calendar = Calendar.current
+        
+        switch frequency.lowercased() {
+        case "monthly":
+            return calendar.date(byAdding: .month, value: 1, to: date) ?? date
+        case "bi-weekly":
+            return calendar.date(byAdding: .day, value: 14, to: date) ?? date
+        case "weekly":
+            return calendar.date(byAdding: .day, value: 7, to: date) ?? date
+        default:
+            return calendar.date(byAdding: .month, value: 1, to: date) ?? date
+        }
+    }
+    
+    // Function to fetch and print all payments for debugging
+    private func fetchAndPrintAllPayments() {
+        let fetchRequest: NSFetchRequest<Payment> = Payment.fetchRequest()
+        
+        do {
+            let payments = try viewContext.fetch(fetchRequest)
+            print("Fetched \(payments.count) Payment records:")
+            var totalInterestPaid = 0.0
+            var totalToPayBack = 0.0
+            
+            for payment in payments {
+                print("----")
+                print("paymentID: \(payment.paymentID?.uuidString ?? "N/A")")  // Correctly access UUID string
+                print("userID: \(payment.userID ?? "N/A")")
+                print("debtID: \(String(describing: payment.debtID))")
+                print("balance: \(String(format: "%.2f", payment.balance))")
+                print("amountPaid: \(String(format: "%.2f", payment.amountPaid))")
+                print("paymentDueDate: \(payment.paymentDueDate?.formatted(date: .numeric, time: .omitted) ?? "N/A")")
+                print("status: \(payment.status ?? "N/A")")
+                
+                totalToPayBack += payment.amountPaid
+            }
+            
+            // Print summary
+            print("\n=== Payment Schedule Summary ===")
+            print("Total number of payments: \(payments.count)")
+            print("Total to pay back: $\(String(format: "%.2f", totalToPayBack))")
+            let originalDebt = Double(currentBalance) ?? 0.0
+            let totalInterest = totalToPayBack - originalDebt
+            print("Total interest: $\(String(format: "%.2f", totalInterest))")
+            
+        } catch {
+            print("Failed to fetch payments: \(error.localizedDescription)")
+        }
+    }
 }
-
 
 struct DebtTypeSelectionView: View {
     @Binding var selectedType: String
