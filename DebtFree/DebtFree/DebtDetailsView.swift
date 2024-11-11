@@ -612,12 +612,15 @@ struct TransactionsView: View {
     init(debt: Debt) {
         self.debt = debt
         
+        // Safely handle the debtID
+        let debtID = debt.debtID ?? UUID()
+        
         // Initialize fetch request for upcoming payments
         self.upcomingPayments = FetchRequest<Payment>(
             entity: Payment.entity(),
             sortDescriptors: [NSSortDescriptor(keyPath: \Payment.paymentDueDate, ascending: true)],
             predicate: NSCompoundPredicate(andPredicateWithSubpredicates: [
-                NSPredicate(format: "debtID == %@", debt.debtID! as CVarArg),
+                NSPredicate(format: "debtID == %@", debtID as CVarArg),
                 NSPredicate(format: "status == %@", "upcoming")
             ])
         )
@@ -627,7 +630,7 @@ struct TransactionsView: View {
             entity: Payment.entity(),
             sortDescriptors: [NSSortDescriptor(keyPath: \Payment.paymentDueDate, ascending: false)],
             predicate: NSCompoundPredicate(andPredicateWithSubpredicates: [
-                NSPredicate(format: "debtID == %@", debt.debtID! as CVarArg),
+                NSPredicate(format: "debtID == %@", debtID as CVarArg),
                 NSPredicate(format: "status == %@", "completed")
             ])
         )
@@ -683,7 +686,7 @@ struct TransactionsView: View {
                                 .padding()
                         } else {
                             ForEach(upcomingPayments.wrappedValue) { payment in
-                                PaymentRowView(payment: payment)
+                                PaymentRowView(payment: payment, debt: debt)
                                 Divider()
                             }
                         }
@@ -702,7 +705,7 @@ struct TransactionsView: View {
                                 .padding()
                         } else {
                             ForEach(pastPayments.wrappedValue) { payment in
-                                PaymentRowView(payment: payment, isPast: true)
+                                PaymentRowView(payment: payment, isPast: true, debt: debt)
                                 Divider()
                             }
                         }
@@ -719,6 +722,13 @@ struct TransactionsView: View {
 struct PaymentRowView: View {
     let payment: Payment
     var isPast: Bool = false
+    @ObservedObject var debt: Debt
+    
+    // Calculate interest for upcoming payment
+    private func calculateInterest() -> Double {
+        let monthlyRate = debt.apr / (100.0 * 12.0)  // Convert annual rate to monthly
+        return payment.balance * monthlyRate
+    }
     
     var body: some View {
         HStack {
@@ -735,20 +745,11 @@ struct PaymentRowView: View {
                     Text(date.formatted(date: .numeric, time: .omitted))
                         .foregroundColor(.primary)
                 }
-                
-                // Status text for upcoming payments
-                /*if !isPast {
-                    Text("Due")
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                }*/
             }
             
             Spacer()
             
             VStack(alignment: .trailing, spacing: 4) {
-                // For upcoming payments, show the balance amount
-                // For completed payments, show the paid amount
                 if isPast {
                     Text("LKR \(String(format: "%.2f", payment.amountPaid))")
                         .fontWeight(.medium)
@@ -760,10 +761,21 @@ struct PaymentRowView: View {
                             .foregroundColor(.gray)
                     }
                 } else {
-                    // For upcoming payments, show the minimum payment amount
+                    // For upcoming payments, show principal and interest
+                    let interest = calculateInterest()
+                    let principal = payment.balance - interest
+                    
                     Text("LKR \(String(format: "%.2f", payment.balance))")
                         .fontWeight(.medium)
                         .foregroundColor(.primary)
+                    
+                    Text("Interest: LKR \(String(format: "%.2f", interest))")
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                    
+                    Text("Principal: LKR \(String(format: "%.2f", principal))")
+                        .font(.caption)
+                        .foregroundColor(.gray)
                         
                     Text("Payment Due")
                         .font(.caption)
@@ -782,6 +794,8 @@ struct DetailsView: View {
     @Binding var editingField: EditableField?
     @Binding var showEditModal: Bool
     @State private var showDeleteAlert = false
+    @State private var deleteError: String? = nil
+    @State private var showErrorAlert = false
     
     var body: some View {
         ScrollView {
@@ -891,10 +905,46 @@ struct DetailsView: View {
         .alert("Delete Debt", isPresented: $showDeleteAlert) {
             Button("Cancel", role: .cancel) {}
             Button("Delete", role: .destructive) {
-                deleteDebt()
+                deleteDebtAndPayments()
             }
         } message: {
             Text("Are you sure you want to delete this debt? This action cannot be undone.")
+        }
+        .alert("Error", isPresented: $showErrorAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            if let error = deleteError {
+                Text(error)
+            }
+        }
+    }
+    
+    private func deleteDebtAndPayments() {
+        // First, fetch all associated payments
+        let fetchRequest: NSFetchRequest<Payment> = Payment.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "debtID == %@", debt.debtID! as CVarArg)
+        
+        do {
+            // Fetch all payments associated with this debt
+            let payments = try viewContext.fetch(fetchRequest)
+            
+            // Delete each payment
+            for payment in payments {
+                viewContext.delete(payment)
+            }
+            
+            // Delete the debt
+            viewContext.delete(debt)
+            
+            // Save the context to persist the changes
+            try viewContext.save()
+            
+            // Dismiss the view after successful deletion
+            dismiss()
+        } catch {
+            print("Error deleting debt and payments: \(error)")
+            deleteError = "Failed to delete debt: \(error.localizedDescription)"
+            showErrorAlert = true
         }
     }
     

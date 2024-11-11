@@ -325,44 +325,40 @@ struct AddDebtView: View {
     
     // Function to generate upcoming payments until debt is zero
     private func generateUpcomingPayments(for debt: Debt) {
-        guard let debtID = debt.debtID,  // This is now a String
+        guard let debtID = debt.debtID,
               let frequency = debt.paymentFrequency,
               let startDate = debt.nextPaymentDate else {
             return
         }
         
-        var currentBalance = debt.currentBalance
+        var currentBalance = debt.currentBalance - debt.paidAmount
         let minimumPayment = debt.minimumPayment
         var currentDate = startDate
-        let monthlyInterest = (debt.apr / 12.0) / 100.0
         
         // Continue generating payments until balance is zero or very close to zero
         while currentBalance > 0.01 {
             let payment = Payment(context: viewContext)
-            payment.paymentID = UUID() // Store payment ID as String
+            payment.paymentID = UUID()
             payment.userID = debt.userID
-            payment.debtID = debtID  // This now works as both are String type
+            payment.debtID = debtID
             
             // For the last payment, use the remaining balance if it's less than minimum payment
-            let paymentAmount = min(minimumPayment, currentBalance + (currentBalance * monthlyInterest))
+            let paymentAmount = min(minimumPayment, currentBalance)
             payment.balance = currentBalance
             payment.amountPaid = 0.0
             payment.paymentDueDate = currentDate
             payment.status = "upcoming"
             payment.paidDate = nil
             
-            // Calculate interest for this period
-            let interestAmount = currentBalance * monthlyInterest
-            
-            // Update balance for next payment
-            currentBalance = currentBalance + interestAmount - paymentAmount
+            // Update balance for next payment (subtract minimum payment without interest)
+            currentBalance = currentBalance - paymentAmount
             
             // Calculate next payment date based on frequency
             currentDate = calculateNextPaymentDate(from: currentDate, frequency: frequency)
         }
     }
-    
-    // Helper function to calculate next payment date
+
+    // Helper function to calculate next payment date remains the same
     private func calculateNextPaymentDate(from date: Date, frequency: String) -> Date {
         let calendar = Calendar.current
         
