@@ -251,12 +251,12 @@ struct PaymentDetailsSheet: View {
     
     let payment: Payment
     @State private var paymentAmount: Double
-    @State private var paymentText: String // Add this for text input
+    @State private var paymentText: String
     @State private var debt: Debt?
     @State private var showingAlert = false
+    @State private var showingConfirmation = false  // New state for confirmation alert
     @State private var alertMessage = ""
     
-    // Initialize with the payment and set initial payment amount
     init(payment: Payment) {
         self.payment = payment
         _paymentAmount = State(initialValue: 0.0)
@@ -322,31 +322,38 @@ struct PaymentDetailsSheet: View {
                         Text("LKR \(String(format: "%.2f", interestAccrued))")
                     }
                     
-                    // Payment Amount (Editable)
-                    HStack {
-                        Text("Payment")
-                            .foregroundColor(.gray)
-                        Spacer()
+                    if payment.status != "completed" {
+                        // Payment Amount (Editable) - Only show for upcoming payments
                         HStack {
-                            Text("LKR")
+                            Text("Payment")
                                 .foregroundColor(.gray)
-                            TextField("Enter amount", text: $paymentText)
-                                .keyboardType(.decimalPad)
-                                .multilineTextAlignment(.trailing)
-                                .textFieldStyle(RoundedBorderTextFieldStyle()) // Add border to make it clearly editable
-                                .frame(width: 120)
-                                .onChange(of: paymentText) { oldValue, newValue in
-                                    // Filter out non-numeric characters except decimal point
-                                    let filtered = newValue.filter { "0123456789.".contains($0) }
-                                    if filtered != newValue {
-                                        paymentText = filtered
+                            Spacer()
+                            HStack {
+                                Text("LKR")
+                                    .foregroundColor(.gray)
+                                TextField("Enter amount", text: $paymentText)
+                                    .keyboardType(.decimalPad)
+                                    .multilineTextAlignment(.trailing)
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    .frame(width: 120)
+                                    .onChange(of: paymentText) { oldValue, newValue in
+                                        let filtered = newValue.filter { "0123456789.".contains($0) }
+                                        if filtered != newValue {
+                                            paymentText = filtered
+                                        }
+                                        if let amount = Double(filtered) {
+                                            paymentAmount = amount
+                                        }
                                     }
-                                    
-                                    // Update paymentAmount if valid number
-                                    if let amount = Double(filtered) {
-                                        paymentAmount = amount
-                                    }
-                                }
+                            }
+                        }
+                    } else {
+                        // Show paid amount for completed payments
+                        HStack {
+                            Text("Paid Amount")
+                                .foregroundColor(.gray)
+                            Spacer()
+                            Text("LKR \(String(format: "%.2f", payment.amountPaid))")
                         }
                     }
                     
@@ -354,11 +361,21 @@ struct PaymentDetailsSheet: View {
                     
                     // Total Payment
                     HStack {
-                        Text("Total Payment")
+                        Text(payment.status == "completed" ? "Total Paid" : "Total Payment")
                             .fontWeight(.medium)
                         Spacer()
-                        Text("LKR \(String(format: "%.2f", paymentAmount))")
+                        Text("LKR \(String(format: "%.2f", payment.status == "completed" ? payment.amountPaid : paymentAmount))")
                             .fontWeight(.medium)
+                    }
+                    
+                    if payment.status == "completed", let paidDate = payment.paidDate {
+                        HStack {
+                            Text("Paid Date")
+                                .fontWeight(.medium)
+                            Spacer()
+                            Text(paidDate.formatted(.dateTime.day().month().year()))
+                                .foregroundColor(.green)
+                        }
                     }
                 }
                 .padding()
@@ -366,21 +383,35 @@ struct PaymentDetailsSheet: View {
                 
                 Spacer()
                 
-                // Mark as Complete Button
-                Button(action: markAsComplete) {
-                    Text("Mark as Complete")
-                        .fontWeight(.medium)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .cornerRadius(10)
+                // Mark as Complete Button - Only show for upcoming payments
+                if payment.status != "completed" {
+                    Button(action: {
+                        showingConfirmation = true  // Show confirmation alert instead of direct action
+                    }) {
+                        Text("Mark as Complete")
+                            .fontWeight(.medium)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.blue)
+                            .cornerRadius(10)
+                    }
+                    .padding()
                 }
-                .padding()
             }
             .navigationBarItems(trailing: Button("Done") {
                 dismiss()
             })
+            // Confirmation Alert
+            .alert("Confirm Payment", isPresented: $showingConfirmation) {
+                Button("Cancel", role: .cancel) { }
+                Button("Confirm", role: .destructive) {
+                    markAsComplete()
+                }
+            } message: {
+                Text("Are you sure you want to mark this payment as complete? This action cannot be undone.")
+            }
+            // Result Alert
             .alert("Payment Update", isPresented: $showingAlert) {
                 Button("OK") {
                     if payment.status == "completed" {
@@ -393,8 +424,10 @@ struct PaymentDetailsSheet: View {
         }
         .onAppear {
             fetchDebtDetails()
-            paymentAmount = totalAmount
-            paymentText = String(format: "%.2f", totalAmount)
+            if payment.status != "completed" {
+                paymentAmount = totalAmount
+                paymentText = String(format: "%.2f", totalAmount)
+            }
         }
     }
     
@@ -486,27 +519,36 @@ struct PaymentItemView: View {
                     
                     // Payment Details
                     VStack(spacing: 8) {
-                        // First Row: Debt Name and Total Amount
+                        // First Row: Debt Name and Amount
                         HStack {
                             Text(debt?.debtName ?? "Unknown")
                                 .foregroundColor(.black)
                                 .font(.system(size: 18))
                             Spacer()
-                            Text("LKR \(String(format: "%.2f", totalAmount))")
-                                .foregroundColor(.black)
-                                .font(.system(size: 18))
-                                .fontWeight(.medium)
+                            if payment.status == "completed" {
+                                Text("LKR \(String(format: "%.2f", payment.amountPaid))")
+                                    .foregroundColor(.black)
+                                    .font(.system(size: 18))
+                                    .fontWeight(.medium)
+                            } else {
+                                Text("LKR \(String(format: "%.2f", totalAmount))")
+                                    .foregroundColor(.black)
+                                    .font(.system(size: 18))
+                                    .fontWeight(.medium)
+                            }
                         }
                         
-                        // Third Row: Interest Amount
-                        HStack {
-                            Text("Interest")
-                                .font(.system(size: 16))
-                                .foregroundColor(.gray)
-                            Spacer()
-                            Text("LKR \(String(format: "%.2f", calculatedInterest))")
-                                .font(.system(size: 16))
-                                .foregroundColor(.gray)
+                        // Show Interest only for upcoming payments
+                        if payment.status != "completed" {
+                            HStack {
+                                Text("Interest")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.gray)
+                                Spacer()
+                                Text("LKR \(String(format: "%.2f", calculatedInterest))")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.gray)
+                            }
                         }
                     }
                     
@@ -517,30 +559,25 @@ struct PaymentItemView: View {
                         .frame(height: 40)
                 }
                 
-                // Payment Date and Status
-                HStack {
-                    if let dueDate = payment.paymentDueDate {
-                        Text(dueDate.formatted(.dateTime.day().month().year()))
-                            .font(.system(size: 16))
-                            .foregroundColor(.black)
+                if payment.status == "completed" {
+                    // Only show paid date for completed payments
+                    if let paidDate = payment.paidDate {
+                        Text("Paid on \(paidDate.formatted(.dateTime.day().month().year()))")
+                            .font(.system(size: 14))
+                            .foregroundColor(.green)
+                            .padding(.leading, 56)
                     }
-                    
-                    Spacer()
-                    
-                    if payment.status == "completed" {
-                        // PAID tag with checkmark
-                        HStack(spacing: 4) {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(.white)
-                            Text("PAID")
-                                .font(.system(size: 14))
-                                .foregroundColor(.white)
+                } else {
+                    // Show due date only for upcoming payments
+                    HStack {
+                        if let dueDate = payment.paymentDueDate {
+                            Text(dueDate.formatted(.dateTime.day().month().year()))
+                                .font(.system(size: 16))
+                                .foregroundColor(.black)
                         }
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color.green)
-                        .cornerRadius(6)
-                    } else {
+                        
+                        Spacer()
+                        
                         Text("Minimum")
                             .font(.system(size: 14))
                             .foregroundColor(.white)
@@ -549,20 +586,11 @@ struct PaymentItemView: View {
                             .background(Color.blue)
                             .cornerRadius(6)
                     }
-                }
-                .padding(.leading, 56)
-                
-                // Show paid date for completed payments
-                if payment.status == "completed", let paidDate = payment.paidDate {
-                    Text("Paid on \(paidDate.formatted(.dateTime.day().month().year()))")
-                        .font(.system(size: 14))
-                        .foregroundColor(.green)
-                        .padding(.leading, 56)
+                    .padding(.leading, 56)
                 }
             }
             .padding(.vertical, 16)
             .padding(.horizontal, 16)
-            
         }
         .sheet(isPresented: $showingPaymentSheet) {
             PaymentDetailsSheet(payment: payment)
