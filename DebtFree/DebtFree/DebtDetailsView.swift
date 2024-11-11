@@ -763,19 +763,15 @@ struct PaymentRowView: View {
                 } else {
                     // For upcoming payments, show principal and interest
                     let interest = calculateInterest()
-                    let principal = payment.balance - interest
+                    let payaAmount = debt.minimumPayment + interest
                     
-                    Text("LKR \(String(format: "%.2f", payment.balance))")
+                    Text("LKR \(String(format: "%.2f", payaAmount))")
                         .fontWeight(.medium)
                         .foregroundColor(.primary)
                     
                     Text("Interest: LKR \(String(format: "%.2f", interest))")
                         .font(.caption)
                         .foregroundColor(.blue)
-                    
-                    Text("Principal: LKR \(String(format: "%.2f", principal))")
-                        .font(.caption)
-                        .foregroundColor(.gray)
                         
                     Text("Payment Due")
                         .font(.caption)
