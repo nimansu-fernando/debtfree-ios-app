@@ -7,49 +7,19 @@
 
 import SwiftUI
 import Charts
-
-struct Budget: Codable {
-    var income: [BudgetCategory]
-    var savings: [BudgetCategory]
-    var expenses: [BudgetCategory]
-    
-    var totalIncome: Double {
-        income.reduce(0) { $0 + $1.amount }
-    }
-    
-    var totalSavings: Double {
-        savings.reduce(0) { $0 + $1.amount }
-    }
-    
-    var totalExpenses: Double {
-        expenses.reduce(0) { $0 + $1.amount }
-    }
-    
-    var remaining: Double {
-        totalIncome - (totalSavings + totalExpenses)
-    }
-}
-
-struct BudgetCategory: Identifiable, Codable {
-    let id: UUID
-    var name: String
-    var icon: String
-    var amount: Double
-    
-    init(id: UUID = UUID(), name: String, icon: String, amount: Double) {
-        self.id = id
-        self.name = name
-        self.icon = icon
-        self.amount = amount
-    }
-}
+import CoreData
+import FirebaseAuth
 
 class BudgetViewModel: ObservableObject {
-    @Published var budget: Budget
+    @Published var income: [NSManagedObject] = []
+    @Published var savings: [NSManagedObject] = []
+    @Published var expenses: [NSManagedObject] = []
     @Published var showingAddCategory = false
     @Published var selectedCategoryType: CategoryType?
     @Published var showingAlert = false
     @Published var alertMessage = ""
+    private var managedObjectContext: NSManagedObjectContext
+    private var userID: String
     
     enum CategoryType: String {
         case income = "Income"
@@ -57,86 +27,102 @@ class BudgetViewModel: ObservableObject {
         case expenses = "Expenses"
     }
     
-    init() {
-        self.budget = Budget(
-            income: [BudgetCategory(name: "Salary", icon: "dollarsign.circle.fill", amount: 0)],
-            savings: [BudgetCategory(name: "Savings", icon: "banknote.fill", amount: 0)],
-            expenses: []
-        )
-        loadBudget()
+    init(context: NSManagedObjectContext, userID: String) {
+        self.managedObjectContext = context
+        self.userID = userID
+        loadBudgetCategories()
+    }
+    
+    var totalIncome: Double {
+        income.reduce(0) { $0 + (($1.value(forKey: "amount") as? Double) ?? 0) }
+    }
+    
+    var totalSavings: Double {
+        savings.reduce(0) { $0 + (($1.value(forKey: "amount") as? Double) ?? 0) }
+    }
+    
+    var totalExpenses: Double {
+        expenses.reduce(0) { $0 + (($1.value(forKey: "amount") as? Double) ?? 0) }
+    }
+    
+    var remaining: Double {
+        totalIncome - (totalSavings + totalExpenses)
     }
     
     func addCategory(name: String, icon: String, amount: Double, type: CategoryType) {
-        let newCategory = BudgetCategory(name: name, icon: icon, amount: amount)
+        let entity = NSEntityDescription.entity(forEntityName: "BudgetCategory", in: managedObjectContext)!
+        let newCategory = NSManagedObject(entity: entity, insertInto: managedObjectContext)
         
-        switch type {
-        case .income:
-            budget.income.append(newCategory)
-        case .savings:
-            budget.savings.append(newCategory)
-        case .expenses:
-            budget.expenses.append(newCategory)
-        }
+        newCategory.setValue(UUID(), forKey: "id")
+        newCategory.setValue(name, forKey: "name")
+        newCategory.setValue(icon, forKey: "icon")
+        newCategory.setValue(amount, forKey: "amount")
+        newCategory.setValue(type.rawValue, forKey: "type")
+        newCategory.setValue(userID, forKey: "userID")
         
-        saveBudget()
+        saveContext()
+        loadBudgetCategories()
     }
     
-    func updateCategory(_ category: BudgetCategory, newAmount: Double, type: CategoryType) {
-        switch type {
-        case .income:
-            if let index = budget.income.firstIndex(where: { $0.id == category.id }) {
-                budget.income[index].amount = newAmount
-            }
-        case .savings:
-            if let index = budget.savings.firstIndex(where: { $0.id == category.id }) {
-                budget.savings[index].amount = newAmount
-            }
-        case .expenses:
-            if let index = budget.expenses.firstIndex(where: { $0.id == category.id }) {
-                budget.expenses[index].amount = newAmount
-            }
-        }
-        
+    func updateCategory(_ category: NSManagedObject, newAmount: Double) {
+        category.setValue(newAmount, forKey: "amount")
+        saveContext()
+        loadBudgetCategories()
         validateBudget()
-        saveBudget()
     }
     
-    func deleteCategory(_ category: BudgetCategory, type: CategoryType) {
-        switch type {
-        case .income:
-            budget.income.removeAll { $0.id == category.id }
-        case .savings:
-            budget.savings.removeAll { $0.id == category.id }
-        case .expenses:
-            budget.expenses.removeAll { $0.id == category.id }
-        }
+    func deleteCategory(_ category: NSManagedObject) {
+        managedObjectContext.delete(category)
+        saveContext()
+        loadBudgetCategories()
+    }
+    
+    private func loadBudgetCategories() {
+        let request = NSFetchRequest<NSManagedObject>(entityName: "BudgetCategory")
+        request.predicate = NSPredicate(format: "userID == %@", userID)
         
-        saveBudget()
+        do {
+            let categories = try managedObjectContext.fetch(request)
+            
+            // Sort categories by type
+            income = categories.filter { $0.value(forKey: "type") as? String == CategoryType.income.rawValue }
+            savings = categories.filter { $0.value(forKey: "type") as? String == CategoryType.savings.rawValue }
+            expenses = categories.filter { $0.value(forKey: "type") as? String == CategoryType.expenses.rawValue }
+        } catch {
+            print("Error fetching categories: \(error)")
+        }
     }
     
     private func validateBudget() {
-        if budget.totalSavings + budget.totalExpenses > budget.totalIncome {
+        if totalSavings + totalExpenses > totalIncome {
             showingAlert = true
             alertMessage = "Warning: Your expenses and savings exceed your income!"
         }
     }
     
-    private func saveBudget() {
-        if let encoded = try? JSONEncoder().encode(budget) {
-            UserDefaults.standard.set(encoded, forKey: "budget")
-        }
-    }
-    
-    private func loadBudget() {
-        if let data = UserDefaults.standard.data(forKey: "budget"),
-           let decoded = try? JSONDecoder().decode(Budget.self, from: data) {
-            budget = decoded
+    private func saveContext() {
+        do {
+            try managedObjectContext.save()
+        } catch {
+            print("Error saving context: \(error)")
         }
     }
 }
 
+
 struct BudgetView: View {
-    @StateObject private var viewModel = BudgetViewModel()
+    @Environment(\.managedObjectContext) private var managedObjectContext
+    @StateObject private var viewModel: BudgetViewModel
+    
+    init() {
+        // Get current user ID from Firebase Auth
+        let userID = Auth.auth().currentUser?.uid ?? ""
+        // Initialize viewModel with managedObjectContext and userID
+        _viewModel = StateObject(wrappedValue: BudgetViewModel(
+            context: PersistenceController.shared.container.viewContext,
+            userID: userID
+        ))
+    }
     
     var body: some View {
         ScrollView(.vertical, showsIndicators: true) {
@@ -158,10 +144,10 @@ struct BudgetView: View {
                     Text("Available Balance for Debt Repayments")
                         .font(.subheadline)
                         .foregroundColor(.gray)
-                    Text("LKR \(viewModel.budget.remaining, specifier: "%.2f")")
+                    Text("LKR \(viewModel.remaining, specifier: "%.2f")")
                         .font(.title2)
                         .fontWeight(.bold)
-                        .foregroundColor(viewModel.budget.remaining >= 0 ? .green : .red)
+                        .foregroundColor(viewModel.remaining >= 0 ? .green : .red)
                 }
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -176,9 +162,9 @@ struct BudgetView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                     
                     Chart {
-                        if viewModel.budget.totalIncome > 0 {
+                        if viewModel.totalIncome > 0 {
                             SectorMark(
-                                angle: .value("Savings", viewModel.budget.totalSavings),
+                                angle: .value("Savings", viewModel.totalSavings),
                                 innerRadius: .ratio(0.6),
                                 angularInset: 1.0
                             )
@@ -186,7 +172,7 @@ struct BudgetView: View {
                             .foregroundStyle(.mint)
                             
                             SectorMark(
-                                angle: .value("Expenses", viewModel.budget.totalExpenses),
+                                angle: .value("Expenses", viewModel.totalExpenses),
                                 innerRadius: .ratio(0.6),
                                 angularInset: 1.0
                             )
@@ -194,7 +180,7 @@ struct BudgetView: View {
                             .foregroundStyle(.pink)
                             
                             SectorMark(
-                                angle: .value("Remaining", max(0, viewModel.budget.remaining)),
+                                angle: .value("Remaining", max(0, viewModel.remaining)),
                                 innerRadius: .ratio(0.6),
                                 angularInset: 1.0
                             )
@@ -205,9 +191,9 @@ struct BudgetView: View {
                     .frame(height: 200)
                     
                     HStack(spacing: 20) {
-                        legendItem(color: .mint, label: "Savings", value: viewModel.budget.totalSavings)
-                        legendItem(color: .pink, label: "Expenses", value: viewModel.budget.totalExpenses)
-                        legendItem(color: .blue, label: "Remaining", value: max(0, viewModel.budget.remaining))
+                        legendItem(color: .mint, label: "Savings", value: viewModel.totalSavings)
+                        legendItem(color: .pink, label: "Expenses", value: viewModel.totalExpenses)
+                        legendItem(color: .blue, label: "Remaining", value: max(0, viewModel.remaining))
                     }
                 }
                 .padding()
@@ -218,19 +204,19 @@ struct BudgetView: View {
                 // Categories Sections
                 categorySection(
                     title: "Income",
-                    categories: viewModel.budget.income,
+                    categories: viewModel.income,
                     type: .income
                 )
                 
                 categorySection(
                     title: "Savings",
-                    categories: viewModel.budget.savings,
+                    categories: viewModel.savings,
                     type: .savings
                 )
                 
                 categorySection(
                     title: "Expenses",
-                    categories: viewModel.budget.expenses,
+                    categories: viewModel.expenses,
                     type: .expenses
                 )
                 Spacer()
@@ -270,7 +256,7 @@ struct BudgetView: View {
     
     private func categorySection(
         title: String,
-        categories: [BudgetCategory],
+        categories: [NSManagedObject],
         type: BudgetViewModel.CategoryType
     ) -> some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -306,7 +292,7 @@ struct BudgetView: View {
                     }
                 }
             } else {
-                ForEach(categories) { category in
+                ForEach(categories, id: \.self) { category in  // Added id: \.self
                     CategoryItemView(
                         category: category,
                         type: type,
@@ -335,28 +321,28 @@ struct BudgetView: View {
 }
 
 struct CategoryItemView: View {
-    let category: BudgetCategory
+    let category: NSManagedObject
     let type: BudgetViewModel.CategoryType
     @ObservedObject var viewModel: BudgetViewModel
     @State private var amount: String
     @State private var showingDeleteAlert = false
     
-    init(category: BudgetCategory, type: BudgetViewModel.CategoryType, viewModel: BudgetViewModel) {
+    init(category: NSManagedObject, type: BudgetViewModel.CategoryType, viewModel: BudgetViewModel) {
         self.category = category
         self.type = type
         self.viewModel = viewModel
-        _amount = State(initialValue: String(format: "%.2f", category.amount))
+        _amount = State(initialValue: String(format: "%.2f", category.value(forKey: "amount") as? Double ?? 0.0))
     }
     
     var body: some View {
         HStack {
-            Image(systemName: category.icon)
+            Image(systemName: category.value(forKey: "icon") as? String ?? "dollarsign.circle.fill")
                 .foregroundColor(.blue)
                 .frame(width: 32, height: 32)
                 .background(Color.blue.opacity(0.1))
                 .clipShape(Circle())
             
-            Text(category.name)
+            Text(category.value(forKey: "name") as? String ?? "")
                 .font(.body)
             
             Spacer()
@@ -368,10 +354,10 @@ struct CategoryItemView: View {
                     .multilineTextAlignment(.trailing)
                     .keyboardType(.decimalPad)
                     .onChange(of: amount) { newValue in
-                    if let newAmount = Double(newValue) {
-                        viewModel.updateCategory(category, newAmount: newAmount, type: type)
+                        if let newAmount = Double(newValue) {
+                            viewModel.updateCategory(category, newAmount: newAmount)
+                        }
                     }
-                }
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
@@ -387,7 +373,7 @@ struct CategoryItemView: View {
         }
         .alert("Delete Category", isPresented: $showingDeleteAlert) {
             Button("Delete", role: .destructive) {
-                viewModel.deleteCategory(category, type: type)
+                viewModel.deleteCategory(category)
             }
             Button("Cancel", role: .cancel) {}
         } message: {
@@ -456,8 +442,3 @@ struct AddCategorySheet: View {
     }
 }
 
-struct BudgetView_Previews: PreviewProvider {
-    static var previews: some View {
-        BudgetView()
-    }
-}
