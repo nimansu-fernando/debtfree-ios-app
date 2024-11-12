@@ -8,6 +8,7 @@
 import SwiftUI
 import CoreData
 import FirebaseAuth
+import EventKit
 
 struct AddDebtView: View {
     @Environment(\.dismiss) private var dismiss
@@ -29,6 +30,12 @@ struct AddDebtView: View {
     @State private var nextPaymentDate: Date = Date()
     @State private var addReminders: Bool = false
     @State private var notes: String = ""
+    
+    // Alert states
+   @State private var showingCalendarPermissionAlert = false
+   @State private var showingEventSavedAlert = false
+   @State private var showingErrorAlert = false
+   @State private var errorMessage = ""
     
     var body: some View {
         NavigationView {
@@ -213,6 +220,14 @@ struct AddDebtView: View {
                             .padding()
                             .background(Color(.systemGray6))
                             .cornerRadius(8)
+                        
+                        // Note to the user about the reminder timing
+                        if addReminders {
+                            Text("Reminders will be set 2 days before the due date.")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                                .padding(.leading)
+                        }
                     }
                     
                     // NOTES
@@ -231,8 +246,11 @@ struct AddDebtView: View {
                     // Add Debt Button
                     Button(action: {
                         addDebt()
-                        fetchAndPrintAllDebts()
-                        fetchAndPrintAllPayments()
+                        if addReminders {
+                            createCalendarEvent()
+                        }
+                        //fetchAndPrintAllDebts()
+                        //fetchAndPrintAllPayments()
                         dismiss()
                     }) {
                         Text("Add Debt")
@@ -247,6 +265,21 @@ struct AddDebtView: View {
                 }
                 .padding()
             }
+            .alert("Calendar Permission Required", isPresented: $showingCalendarPermissionAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("Please enable calendar access in Settings to add payment reminders.")
+            }
+            .alert("Event Added", isPresented: $showingEventSavedAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("Payment reminders have been added to your calendar.")
+            }
+            .alert("Error", isPresented: $showingErrorAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(errorMessage)
+            }
             .navigationTitle("Add a Debt")
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarItems(
@@ -259,6 +292,87 @@ struct AddDebtView: View {
         .onAppear {
             if let user = Auth.auth().currentUser {
                 self.userID = user.uid
+            }
+        }
+    }
+    
+    private func createCalendarEvent() {
+        guard addReminders else { return }
+        
+        EventKitManager.shared.requestAccess { granted in
+            if granted {
+                let endDate = nextPaymentDate.addingTimeInterval(3600) // Add 1 hour for end date
+                
+                // Create recurrence rule based on payment frequency
+                let recurrenceRule: EKRecurrenceRule? = {
+                    let calendar = Calendar.current
+                    switch paymentFrequency.lowercased() {
+                    case "monthly":
+                        return EKRecurrenceRule(
+                            recurrenceWith: .monthly,
+                            interval: 1,
+                            end: nil
+                        )
+                    case "bi-weekly":
+                        return EKRecurrenceRule(
+                            recurrenceWith: .daily,
+                            interval: 14,
+                            end: nil
+                        )
+                    case "weekly":
+                        return EKRecurrenceRule(
+                            recurrenceWith: .weekly,
+                            interval: 1,
+                            end: nil
+                        )
+                    default:
+                        return nil
+                    }
+                }()
+                
+                // Prepare event data
+                let title = "Payment Due: \(debtName)"
+                let location = lenderName
+                let eventNotes = """
+                Debt Type: \(debtType)
+                Amount Due: LKR \(minimumPayment)
+                \(notes)
+                """
+                
+                // Create and save event
+                let eventStore = EKEventStore()
+                let event = EKEvent(eventStore: eventStore)
+                event.title = title
+                event.location = location
+                event.startDate = nextPaymentDate
+                event.endDate = endDate
+                event.notes = eventNotes
+                event.calendar = eventStore.defaultCalendarForNewEvents
+                
+                // Add recurrence rule if available
+                if let rule = recurrenceRule {
+                    event.recurrenceRules = [rule]
+                }
+                
+                // Add 2-day advance alert
+                let alarm = EKAlarm(relativeOffset: -2 * 24 * 60 * 60) // 2 days in seconds
+                event.addAlarm(alarm)
+                
+                do {
+                    try eventStore.save(event, span: .futureEvents)
+                    DispatchQueue.main.async {
+                        showingEventSavedAlert = true
+                    }
+                } catch {
+                    DispatchQueue.main.async {
+                        errorMessage = error.localizedDescription
+                        showingErrorAlert = true
+                    }
+                }
+            } else {
+                DispatchQueue.main.async {
+                    showingCalendarPermissionAlert = true
+                }
             }
         }
     }
@@ -291,6 +405,11 @@ struct AddDebtView: View {
             print("Debt and payments saved successfully with ID: \(newDebt.debtID?.uuidString ?? "unknown")")
         } catch {
             print("Failed to save debt: \(error.localizedDescription)")
+        }
+        
+        let urls = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask)
+        if let applicationSupportURL = urls.first?.appendingPathComponent("Application Support") {
+            print("Database URL: \(applicationSupportURL)")
         }
     }
     

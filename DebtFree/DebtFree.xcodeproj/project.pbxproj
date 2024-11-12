@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9A1A091D2CE31DB300C0B294 /* EventKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A1A091C2CE31DB300C0B294 /* EventKitManager.swift */; };
 		9A1C85762CD5FB4D0049953D /* ForgotPasswordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A1C85752CD5FB4D0049953D /* ForgotPasswordView.swift */; };
 		9A1C85782CD5FD850049953D /* EnterVerificationCodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A1C85772CD5FD850049953D /* EnterVerificationCodeView.swift */; };
 		9A1C857A2CD5FF740049953D /* ResetPasswordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A1C85792CD5FF740049953D /* ResetPasswordView.swift */; };
@@ -59,6 +60,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		9A1A091C2CE31DB300C0B294 /* EventKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventKitManager.swift; sourceTree = "<group>"; };
 		9A1C85752CD5FB4D0049953D /* ForgotPasswordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForgotPasswordView.swift; sourceTree = "<group>"; };
 		9A1C85772CD5FD850049953D /* EnterVerificationCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnterVerificationCodeView.swift; sourceTree = "<group>"; };
 		9A1C85792CD5FF740049953D /* ResetPasswordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResetPasswordView.swift; sourceTree = "<group>"; };
@@ -164,6 +166,7 @@
 				9ABB2FA22CDCE2F00000AC3C /* ProfileView.swift */,
 				9A1C857F2CD6099C0049953D /* DebtsView.swift */,
 				9A1C85812CD609C70049953D /* AddDebtView.swift */,
+				9A1A091C2CE31DB300C0B294 /* EventKitManager.swift */,
 				9A32913E2CDA09F600C3FFEF /* DebtDetailsView.swift */,
 				9A3291402CDA24E300C3FFEF /* PlanView.swift */,
 				9A3291422CDA2F3300C3FFEF /* BudgetView.swift */,
@@ -356,6 +359,7 @@
 				9AF2D8252CCE231C00176584 /* SignUpView.swift in Sources */,
 				9AF2D7FC2CCE182900176584 /* DebtFree.xcdatamodeld in Sources */,
 				9A1C85822CD609C70049953D /* AddDebtView.swift in Sources */,
+				9A1A091D2CE31DB300C0B294 /* EventKitManager.swift in Sources */,
 				9A1C857A2CD5FF740049953D /* ResetPasswordView.swift in Sources */,
 				9A1C85802CD6099C0049953D /* DebtsView.swift in Sources */,
 				9A8821F42CDB27CF00E66870 /* SplashScreen.swift in Sources */,
