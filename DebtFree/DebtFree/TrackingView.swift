@@ -190,30 +190,41 @@ struct UpcomingPaymentsView: View {
 struct CompletedPaymentsView: View {
     let payments: FetchedResults<Payment>
     
-    private var paymentsByMonth: [String: [Payment]] {
+    private var paymentsByMonth: [(String, [Payment])] {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "MMMM yyyy"
         
-        var grouped: [String: [Payment]] = [:]
+        // First, group payments by date string but keep track of the first date in each group
+        var groupedWithDates: [(date: Date, key: String, payments: [Payment])] = []
+        var tempGroups: [String: (date: Date, payments: [Payment])] = [:]
+        
         for payment in payments {
             if let date = payment.paymentDueDate {
                 let key = dateFormatter.string(from: date)
-                if grouped[key] == nil {
-                    grouped[key] = []
+                
+                if tempGroups[key] == nil {
+                    tempGroups[key] = (date: date, payments: [])
                 }
-                grouped[key]?.append(payment)
+                tempGroups[key]?.payments.append(payment)
             }
         }
-        return grouped
+        
+        // Convert dictionary to array and sort by actual date
+        let sortedGroups = tempGroups.map { (key, value) in
+            (date: value.date, key: key, payments: value.payments)
+        }.sorted { $0.date < $1.date }
+        
+        // Convert back to the format we need for display
+        return sortedGroups.map { (_, key, payments) in
+            (key, payments)
+        }
     }
     
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
-                ForEach(Array(paymentsByMonth.keys.sorted().reversed()), id: \.self) { month in
-                    if let monthPayments = paymentsByMonth[month] {
-                        MonthSection(title: month, items: monthPayments)
-                    }
+                ForEach(paymentsByMonth, id: \.0) { month, monthPayments in
+                    MonthSection(title: month, items: monthPayments)
                 }
             }
             .padding()
@@ -461,7 +472,7 @@ struct PaymentDetailsSheet: View {
         }
         
         // Update Debt
-        debt.paidAmount = debt.paidAmount + paymentAmount
+        debt.paidAmount = debt.paidAmount + (paymentAmount - interestAccrued)
         
         // Update Payment
         payment.amountPaid = paymentAmount
