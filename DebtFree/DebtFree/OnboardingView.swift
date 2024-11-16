@@ -11,6 +11,8 @@ struct OnboardingView: View {
     @State private var currentPage = 0
     @State private var isNavigatingToWelcome = false
     let totalPages = 3
+    
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
     var body: some View {
         NavigationStack {
@@ -92,6 +94,10 @@ struct OnboardingView: View {
             .navigationDestination(isPresented: $isNavigatingToWelcome) {
                 WelcomeView()
                     .navigationBarBackButtonHidden(true) // Hides the back button
+                    .onAppear {
+                        // Mark onboarding as completed
+                        hasCompletedOnboarding = true
+                    }
             }
         }
     }

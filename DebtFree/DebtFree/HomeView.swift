@@ -11,7 +11,6 @@ import FirebaseAuth
 import Charts
 
 struct HomeView: View {
-    @Environment(\.managedObjectContext) private var viewContext
     @State private var isLoading = true
     
     private let dateFormatter: DateFormatter = {
