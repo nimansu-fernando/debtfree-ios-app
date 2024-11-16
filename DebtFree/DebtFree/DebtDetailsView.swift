@@ -125,7 +125,7 @@ struct DebtDetailsView: View {
             .padding()
             
             TabView(selection: $selectedTab) {
-                ProgressView(debt: debt)
+                ProgressViewTab(debt: debt)
                     .tag(0)
                 TransactionsView(debt: debt)
                     .tag(1)
@@ -151,7 +151,7 @@ struct DebtDetailsView: View {
     }
 }
 
-struct ProgressView: View {
+struct ProgressViewTab: View {
     let debt: Debt
     
     // Calculate monthly payoff points

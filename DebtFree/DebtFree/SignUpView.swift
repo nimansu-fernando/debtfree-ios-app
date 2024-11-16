@@ -17,31 +17,41 @@ struct SignUpView: View {
     @State private var isPasswordVisible = false
     @State private var isLoading = false
     
-    // Alert and Navigation State Variables
-    @State private var showErrorAlert = false
-    @State private var showSuccessAlert = false
+    // Alert State Variables
+    @State private var showAlert = false
+    @State private var alertTitle = ""
+    @State private var alertMessage = ""
     @State private var navigateToSignIn = false
-    @State private var errorMessage = ""
-
+    
+    // Password validation states
+    @State private var hasMinLength = false
+    @State private var hasUppercase = false
+    @State private var hasNumber = false
+    @State private var hasSpecialChar = false
+    
+    var isPasswordValid: Bool {
+        hasMinLength && hasUppercase && hasNumber && hasSpecialChar
+    }
+    
     var body: some View {
         NavigationStack {
             ZStack {
                 VStack(spacing: 0) {
                     Color("AccentColor1")
-                        .frame(height: 175)
+                        .frame(height: 180)
                     
                     Color.white
                 }
-                .ignoresSafeArea() // Extends the colors to the edges
+                .ignoresSafeArea()
                 
                 VStack(spacing: 20) {
-                    // Logo
+                    // Logo and titles remain the same...
                     Image("DebtFreeLogo2")
                         .resizable()
                         .frame(width: 257.62, height: 100)
                         .foregroundColor(.green)
+                        .padding(.top, 15)
                     
-                    // Title
                     Text("Create an Account")
                         .font(.title)
                         .fontWeight(.bold)
@@ -52,8 +62,8 @@ struct SignUpView: View {
                         .foregroundColor(.gray)
                         .padding(.top, -15)
                     
-                    // Continue with Apple
-                    Button(action: {}) {
+                    // Social Sign in buttons
+                    Button(action: signInWithApple) {
                         HStack {
                             Image("apple-logo")
                                 .resizable()
@@ -68,16 +78,13 @@ struct SignUpView: View {
                         .background(Color.black)
                         .cornerRadius(25)
                     }
-                    .padding(.top, 20)
+                    .disabled(isLoading)
                     
-                    // Continue with Google
-                    Button(action: {
-                        signUpWithGoogle()
-                    }) {
+                    Button(action: signUpWithGoogle) {
                         HStack {
                             Image("google-logo")
                                 .resizable()
-                                .aspectRatio(contentMode: .fit) // Maintain aspect ratio
+                                .aspectRatio(contentMode: .fit)
                                 .frame(width: 20, height: 20)
                             Text("Continue with Google")
                                 .foregroundColor(.black)
@@ -86,12 +93,13 @@ struct SignUpView: View {
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(Color.white)
-                        .cornerRadius(10)
+                        .cornerRadius(25)
                         .overlay(
                             RoundedRectangle(cornerRadius: 25)
                                 .stroke(Color.gray, lineWidth: 1)
                         )
                     }
+                    .disabled(isLoading)
                     
                     // Divider
                     HStack {
@@ -105,34 +113,61 @@ struct SignUpView: View {
                             .foregroundColor(.gray)
                     }
                     
-                    Text("Sign up with your email address")
-                        .font(.subheadline)
-                        .foregroundColor(.gray)
-                    
-                    // Email TextField
+                    // Email field with validation
                     TextField("Email", text: $email)
-                        .padding()
-                        .background(RoundedRectangle(cornerRadius: 25).stroke(Color("MainColor"), lineWidth: 1))
                         .textContentType(.emailAddress)
                         .keyboardType(.emailAddress)
+                        .autocapitalization(.none)
+                        .padding()
+                        .background(RoundedRectangle(cornerRadius: 25).stroke(Color("MainColor"), lineWidth: 1))
+                        .onChange(of: email) { _ in
+                            validateEmail()
+                        }
                     
-                    // Password TextField
-                    HStack {
-                        if isPasswordVisible {
-                            TextField("Password", text: $password)
-                        } else {
-                            SecureField("Password", text: $password)
+                    // Password field with validation indicators
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            if isPasswordVisible {
+                                TextField("Password", text: $password)
+                            } else {
+                                SecureField("Password", text: $password)
+                            }
+                            
+                            Button(action: { isPasswordVisible.toggle() }) {
+                                Image(systemName: isPasswordVisible ? "eye" : "eye.slash")
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                        .padding()
+                        .background(RoundedRectangle(cornerRadius: 25).stroke(Color("MainColor"), lineWidth: 1))
+                        .onChange(of: password) { _ in
+                            validatePassword()
                         }
                         
-                        Button(action: {
-                            isPasswordVisible.toggle()
-                        }) {
-                            Image(systemName: isPasswordVisible ? "eye" : "eye.slash")
-                                .foregroundColor(.gray)
+                        // Password requirements
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack(spacing: 10) {
+                                PasswordRequirementView(isValid: hasMinLength, text: "At least 8 characters")
+                                    .fixedSize()
+                                Text("•")
+                                    .foregroundColor(.gray)
+                                PasswordRequirementView(isValid: hasUppercase, text: "One uppercase letter")
+                                    .fixedSize()
+                            }
+                            
+                            HStack(spacing: 10) {
+                                PasswordRequirementView(isValid: hasNumber, text: "One number")
+                                    .fixedSize()
+                                Text("•")
+                                    .foregroundColor(.gray)
+                                PasswordRequirementView(isValid: hasSpecialChar, text: "One special character (!@#$)")
+                                    .fixedSize()
+                            }
                         }
+                        .font(.caption2)
+                        .padding(.horizontal)
+                        .fixedSize(horizontal: false, vertical: true)
                     }
-                    .padding()
-                    .background(RoundedRectangle(cornerRadius: 25).stroke(Color("MainColor"), lineWidth: 1))
                     
                     // Terms and Privacy Policy
                     VStack(spacing: 4) {
@@ -151,25 +186,25 @@ struct SignUpView: View {
                     }
                     .foregroundColor(.gray)
                     
-                    // Sign Up Button with Loading Indicator
+                    // Sign Up Button with Loading State
                     Button(action: signUp) {
-                        if isLoading {
-                            /*ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color("MainColor"))
-                                .cornerRadius(25)*/
-                        } else {
+                        ZStack {
                             Text("Sign Up")
                                 .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color("MainColor"))
-                                .cornerRadius(25)
+                                .opacity(isLoading ? 0 : 1)
+                            
+                            if isLoading {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            }
                         }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color("MainColor"))
+                        .cornerRadius(25)
                     }
-                    .disabled(isLoading)
+                    .disabled(isLoading || !isPasswordValid || !isValidEmail(email))
+                    .opacity((isLoading || !isPasswordValid || !isValidEmail(email)) ? 0.6 : 1)
                     .padding(.horizontal, 30)
                     
                     HStack {
@@ -181,11 +216,9 @@ struct SignUpView: View {
                         }
                     }
                     
-                    // NavigationLink for successful sign-up navigation
-                    NavigationLink(
-                        destination: SignInView(),
-                        isActive: $navigateToSignIn
-                    ) {
+                    NavigationLink(isActive: $navigateToSignIn) {
+                        SignInView()
+                    } label: {
                         EmptyView()
                     }
                 }
@@ -193,75 +226,72 @@ struct SignUpView: View {
             }
             .navigationBarHidden(true)
             .navigationBarBackButtonHidden(true)
-            .alert(isPresented: $showErrorAlert) {
+            .alert(isPresented: $showAlert) {
                 Alert(
-                    title: Text("Sign Up Failed"),
-                    message: Text(errorMessage),
-                    dismissButton: .default(Text("OK"))
-                )
-            }
-            .alert(isPresented: $showSuccessAlert) {
-                Alert(
-                    title: Text("Success"),
-                    message: Text("Your account has been created successfully."),
+                    title: Text(alertTitle),
+                    message: Text(alertMessage),
                     dismissButton: .default(Text("OK")) {
-                        // Navigate to SignInView on alert dismissal
-                        navigateToSignIn = true
+                        if alertTitle == "Success" {
+                            navigateToSignIn = true
+                        }
                     }
                 )
             }
+            .disabled(isLoading)
         }
     }
     
-    func validateFields() -> Bool {
-        if email.isEmpty || password.isEmpty {
-            errorMessage = "Please fill in all fields."
-            showErrorAlert = true
-            return false
-        }
-        
-        if !email.contains("@") || !email.contains(".") {
-            errorMessage = "Please enter a valid email address."
-            showErrorAlert = true
-            return false
-        }
-        
-        if password.count < 6 {
-            errorMessage = "Password should be at least 6 characters."
-            showErrorAlert = true
-            return false
-        }
-        
-        return true
+    private func validateEmail() {
+        // Email validation happens in real-time as user types
+        _ = isValidEmail(email)
     }
     
-    func signUp() {
-        guard validateFields() else { return }
-        
+    private func isValidEmail(_ email: String) -> Bool {
+        let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
+        let emailPredicate = NSPredicate(format:"SELF MATCHES %@", emailRegex)
+        return emailPredicate.evaluate(with: email)
+    }
+    
+    private func validatePassword() {
+        hasMinLength = password.count >= 8
+        hasUppercase = password.range(of: "[A-Z]", options: .regularExpression) != nil
+        hasNumber = password.range(of: "[0-9]", options: .regularExpression) != nil
+        hasSpecialChar = password.range(of: "[!@#$%^&*(),.?\":{}|<>]", options: .regularExpression) != nil
+    }
+    
+    private func signUp() {
         isLoading = true
-        errorMessage = ""
         
         Auth.auth().createUser(withEmail: email, password: password) { authResult, error in
             DispatchQueue.main.async {
-                self.isLoading = false
-                if let error = error {
-                    self.errorMessage = error.localizedDescription
-                    self.showErrorAlert = true
+                isLoading = false
+                
+                if let error = error as NSError? {
+                    switch error.code {
+                    case AuthErrorCode.emailAlreadyInUse.rawValue:
+                        showAlert(title: "Error", message: "An account with this email already exists. Please sign in instead.")
+                    case AuthErrorCode.invalidEmail.rawValue:
+                        showAlert(title: "Error", message: "Please enter a valid email address.")
+                    case AuthErrorCode.weakPassword.rawValue:
+                        showAlert(title: "Error", message: "Please choose a stronger password.")
+                    default:
+                        showAlert(title: "Error", message: error.localizedDescription)
+                    }
                 } else {
-                    self.email = ""
-                    self.password = ""
-                    self.showSuccessAlert = true
+                    showAlert(title: "Success", message: "Your account has been created successfully.")
+                    email = ""
+                    password = ""
                 }
             }
         }
     }
     
-    func signUpWithGoogle() {
+    private func signUpWithGoogle() {
         isLoading = true
         
         guard let clientID = FirebaseApp.app()?.options.clientID else {
-            errorMessage = "Google Sign In configuration error"
-            showErrorAlert = true
+            showAlert(title: "Error", message: "Google Sign In configuration error")
+            isLoading = false
             return
         }
         
@@ -270,45 +300,63 @@ struct SignUpView: View {
         
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let rootViewController = windowScene.windows.first?.rootViewController else {
-            errorMessage = "Cannot find root view controller"
-            showErrorAlert = true
+            showAlert(title: "Error", message: "Cannot find root view controller")
+            isLoading = false
             return
         }
         
         GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController) { result, error in
-            self.isLoading = false
-            
             if let error = error {
-                self.errorMessage = error.localizedDescription
-                self.showErrorAlert = true
+                showAlert(title: "Error", message: error.localizedDescription)
+                isLoading = false
                 return
             }
             
             guard let user = result?.user,
                   let idToken = user.idToken?.tokenString else {
-                self.errorMessage = "Cannot get user data from Google."
-                self.showErrorAlert = true
+                showAlert(title: "Error", message: "Cannot get user data from Google.")
+                isLoading = false
                 return
             }
             
             let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: user.accessToken.tokenString)
             
             Auth.auth().signIn(with: credential) { authResult, error in
+                isLoading = false
+                
                 if let error = error {
-                    self.errorMessage = error.localizedDescription
-                    self.showErrorAlert = true
+                    showAlert(title: "Error", message: error.localizedDescription)
                     return
                 }
                 
-                guard let user = authResult?.user else {
-                    self.errorMessage = "Could not retrieve user data."
-                    self.showErrorAlert = true
-                    return
-                }
-                
-                // Account created successfully with Google
-                self.showSuccessAlert = true
+                showAlert(title: "Success", message: "Successfully signed in with Google!")
             }
+        }
+    }
+    
+    private func signInWithApple() {
+        // Implement Apple Sign In
+        isLoading = true
+        // Add your Apple sign-in implementation here
+    }
+    
+    private func showAlert(title: String, message: String) {
+        alertTitle = title
+        alertMessage = message
+        showAlert = true
+    }
+}
+
+struct PasswordRequirementView: View {
+    let isValid: Bool
+    let text: String
+    
+    var body: some View {
+        HStack {
+            Image(systemName: isValid ? "checkmark.circle.fill" : "circle")
+                .foregroundColor(isValid ? .green : .gray)
+            Text(text)
+                .foregroundColor(isValid ? .green : .gray)
         }
     }
 }

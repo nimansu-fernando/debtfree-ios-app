@@ -43,6 +43,8 @@ struct MainTabView: View {
                 .tag(4)
         }
         .tint(Color("MainColor")) // This will color the selected tab items
+        .navigationBarHidden(true)
+        .navigationBarBackButtonHidden(true)
     }
 }
 

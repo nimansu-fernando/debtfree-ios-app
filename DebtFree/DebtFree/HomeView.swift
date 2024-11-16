@@ -11,6 +11,9 @@ import FirebaseAuth
 import Charts
 
 struct HomeView: View {
+    @Environment(\.managedObjectContext) private var viewContext
+    @State private var isLoading = true
+    
     private let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMMM yyyy"
@@ -126,148 +129,160 @@ struct HomeView: View {
     
     var body: some View {
         NavigationStack {
-            VStack {
-                // Custom Header
-                HStack {
-                    Text("Hi, \(userName)!")
-                        .font(.system(size: 25, weight: .bold))
-                        .foregroundColor(.primary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    
+            ZStack {
+                VStack {
+                    // Custom Header
                     HStack {
-                        Image(systemName: "bell")
-                            .font(.system(size: 24))
-                            .foregroundColor(Color("MainColor"))
-                        
-                        NavigationLink(destination: ProfileView()) {
-                            Image(systemName: "person.circle.fill")
-                                .font(.system(size: 28))
-                                .foregroundColor(Color("MainColor"))
-                        }
-                    }
-                }
-                .padding()
-                .background(Color.white)
-                .shadow(radius: 1)
-                
-                ScrollView {
-                    VStack(spacing: 20) {
-                        // Header Card - Debt-Free Countdown
-                        ZStack {
-                            Rectangle()
-                                .fill(Color("CountDownCardColor"))
-                                .frame(height: 180)
-                                .cornerRadius(12)
-                            
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("DEBT-FREE COUNTDOWN")
-                                    .foregroundColor(.white)
-                                    .font(.system(size: 20, weight: .bold))
-                                    .accessibilityLabel("Debt-Free Countdown")
-                                
-                                if hasActiveDebts {
-                                    Text(dateFormatter.string(from: targetDate))
-                                        .foregroundColor(.white.opacity(0.9))
-                                        .font(.system(size: 18))
-                                }
-                                
-                                HStack {
-                                    TimeBlock(value: "\(yearsRemaining)", label: "years")
-                                    TimeBlock(value: "\(monthsRemaining)", label: "months")
-                                }
-                                .padding(.top, hasActiveDebts ? 30 : 50)
-                            }
+                        Text("Hi, \(userName)!")
+                            .font(.system(size: 25, weight: .bold))
+                            .foregroundColor(.primary)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding()
-                            
-                            Image("flying-money")
-                                .resizable()
-                                .frame(width: 170, height: 170)
-                                .offset(x: 95, y: 40)
-                                .opacity(0.7)
-                        }
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .shadow(radius: 0.5)
                         
-                        // Quick Actions Card (Modified)
-                        QuickActionsCard(showingAddDebtSheet: $showingAddDebtSheet)
-                        
-                        // Progress Card
-                        VStack(alignment: .leading, spacing: 25) {
-                            Text("Payoff Progress")
-                                .font(.system(size: 22, weight: .bold))
-                                .padding(.bottom, 5)
+                        HStack {
+                            Image(systemName: "bell")
+                                .font(.system(size: 24))
+                                .foregroundColor(Color("MainColor"))
                             
-                            // Chart Section
-                            VStack(spacing: 30) {
-                                // Swift Charts Donut Chart
-                                Chart(progressChartData, id: \.0) { item in
-                                    SectorMark(
-                                        angle: .value("Amount", item.1),
-                                        innerRadius: .ratio(0.75),
-                                        angularInset: 2.0
-                                    )
-                                    .cornerRadius(3)
-                                    .foregroundStyle(by: .value("Category", item.0))
-                                }
-                                .chartForegroundStyleScale([
-                                    "Paid": Color.green.opacity(0.8),
-                                    "Remaining": Color.red.opacity(0.8)
-                                ])
-                                .chartLegend(position: .bottom, alignment: .center, spacing: 20)
-                                .frame(height: 200)
-                                .overlay {
-                                    VStack(spacing: 5) {
-                                        Text("\(Int(progress * 100))%")
-                                            .font(.system(size: 32, weight: .bold))
-                                        Text("PAID")
-                                            .foregroundColor(.gray)
-                                            .font(.system(size: 14, weight: .semibold))
-                                    }
-                                }
-                                
-                                // Amount Details
-                                HStack(spacing: 40) {
-                                    // Paid Amount
-                                    VStack(alignment: .center, spacing: 8) {
-                                        Text("Paid Amount")
-                                            .foregroundColor(.gray)
-                                            .font(.system(size: 16))
-                                        Text("LKR \(String(format: "%.2f", paidAmount))")
-                                            .foregroundColor(.blue)
-                                            .font(.system(size: 17, weight: .bold))
-                                    }
-                                    
-                                    // Divider
-                                    Rectangle()
-                                        .fill(Color.gray.opacity(0.2))
-                                        .frame(width: 1, height: 40)
-                                    
-                                    // Balance
-                                    VStack(alignment: .center, spacing: 8) {
-                                        Text("Balance")
-                                            .foregroundColor(.gray)
-                                            .font(.system(size: 16))
-                                        Text("LKR \(String(format: "%.2f", remainingAmount))")
-                                            .foregroundColor(.red)
-                                            .font(.system(size: 17, weight: .bold))
-                                    }
-                                }
-                                .frame(maxWidth: .infinity, alignment: .center)
-                                .padding(.horizontal)
+                            NavigationLink(destination: ProfileView()) {
+                                Image(systemName: "person.circle.fill")
+                                    .font(.system(size: 28))
+                                    .foregroundColor(Color("MainColor"))
                             }
-                            .padding(.vertical, 10)
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(20)
-                        .background(Color.white)
-                        .cornerRadius(12)
-                        .shadow(radius: 0.5)
-                        
-                        // Financial Insights Card
-                        FinancialInsightsCard()
                     }
                     .padding()
+                    .background(Color.white)
+                    .shadow(radius: 1)
+                    
+                    ScrollView {
+                        VStack(spacing: 20) {
+                            // Header Card - Debt-Free Countdown
+                            ZStack {
+                                Rectangle()
+                                    .fill(Color("CountDownCardColor"))
+                                    .frame(height: 180)
+                                    .cornerRadius(12)
+                                
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("DEBT-FREE COUNTDOWN")
+                                        .foregroundColor(.white)
+                                        .font(.system(size: 20, weight: .bold))
+                                        .accessibilityLabel("Debt-Free Countdown")
+                                    
+                                    if hasActiveDebts {
+                                        Text(dateFormatter.string(from: targetDate))
+                                            .foregroundColor(.white.opacity(0.9))
+                                            .font(.system(size: 18))
+                                    }
+                                    
+                                    HStack {
+                                        TimeBlock(value: "\(yearsRemaining)", label: "years")
+                                        TimeBlock(value: "\(monthsRemaining)", label: "months")
+                                    }
+                                    .padding(.top, hasActiveDebts ? 30 : 50)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding()
+                                
+                                Image("flying-money")
+                                    .resizable()
+                                    .frame(width: 170, height: 170)
+                                    .offset(x: 95, y: 40)
+                                    .opacity(0.7)
+                            }
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .shadow(radius: 0.5)
+                            
+                            // Quick Actions Card (Modified)
+                            QuickActionsCard(showingAddDebtSheet: $showingAddDebtSheet)
+                            
+                            // Progress Card
+                            VStack(alignment: .leading, spacing: 25) {
+                                Text("Payoff Progress")
+                                    .font(.system(size: 22, weight: .bold))
+                                    .padding(.bottom, 5)
+                                
+                                // Chart Section
+                                VStack(spacing: 30) {
+                                    // Swift Charts Donut Chart
+                                    Chart(progressChartData, id: \.0) { item in
+                                        SectorMark(
+                                            angle: .value("Amount", item.1),
+                                            innerRadius: .ratio(0.75),
+                                            angularInset: 2.0
+                                        )
+                                        .cornerRadius(3)
+                                        .foregroundStyle(by: .value("Category", item.0))
+                                    }
+                                    .chartForegroundStyleScale([
+                                        "Paid": Color.green.opacity(0.8),
+                                        "Remaining": Color.red.opacity(0.8)
+                                    ])
+                                    .chartLegend(position: .bottom, alignment: .center, spacing: 20)
+                                    .frame(height: 200)
+                                    .overlay {
+                                        VStack(spacing: 5) {
+                                            Text("\(Int(progress * 100))%")
+                                                .font(.system(size: 32, weight: .bold))
+                                            Text("PAID")
+                                                .foregroundColor(.gray)
+                                                .font(.system(size: 14, weight: .semibold))
+                                        }
+                                    }
+                                    
+                                    // Amount Details
+                                    HStack(spacing: 40) {
+                                        // Paid Amount
+                                        VStack(alignment: .center, spacing: 8) {
+                                            Text("Paid Amount")
+                                                .foregroundColor(.gray)
+                                                .font(.system(size: 16))
+                                            Text("LKR \(String(format: "%.2f", paidAmount))")
+                                                .foregroundColor(.blue)
+                                                .font(.system(size: 17, weight: .bold))
+                                        }
+                                        
+                                        // Divider
+                                        Rectangle()
+                                            .fill(Color.gray.opacity(0.2))
+                                            .frame(width: 1, height: 40)
+                                        
+                                        // Balance
+                                        VStack(alignment: .center, spacing: 8) {
+                                            Text("Balance")
+                                                .foregroundColor(.gray)
+                                                .font(.system(size: 16))
+                                            Text("LKR \(String(format: "%.2f", remainingAmount))")
+                                                .foregroundColor(.red)
+                                                .font(.system(size: 17, weight: .bold))
+                                        }
+                                    }
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                                    .padding(.horizontal)
+                                }
+                                .padding(.vertical, 10)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(20)
+                            .background(Color.white)
+                            .cornerRadius(12)
+                            .shadow(radius: 0.5)
+                            
+                            // Financial Insights Card
+                            FinancialInsightsCard()
+                        }
+                        .padding()
+                    }
+                }
+                .opacity(isLoading ? 0.3 : 1) // Dim the content while loading
+                    
+                // Loading indicator overlay
+                if isLoading {
+                    ProgressView()
+                        .scaleEffect(1.5)
+                        .padding()
+                        .background(Color.white.opacity(0.9))
+                        .cornerRadius(10)
                 }
             }
             .background(Color(.systemGray6))
@@ -282,8 +297,12 @@ struct HomeView: View {
                         userName = "User"
                     }
                     
-                    debts.nsPredicate = NSPredicate(format: "userID == %@", user.uid)
-                    calculateDebtMetrics()
+                    // Add a slight delay to ensure Core Data is ready
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        debts.nsPredicate = NSPredicate(format: "userID == %@", user.uid)
+                        calculateDebtMetrics()
+                        isLoading = false
+                    }
                 }
             }
         }

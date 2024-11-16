@@ -51,4 +51,38 @@ class KeychainHelper {
         
         SecItemDelete(query)
     }
+    
+    func saveCredentials(email: String, password: String) {
+        let credentials = "\(email):\(password)"
+        save(credentials, forKey: "userCredentials")
+    }
+    
+    func getCredentials() -> (email: String, password: String)? {
+        guard let credentialsString = get(forKey: "userCredentials"),
+              let separatorIndex = credentialsString.firstIndex(of: ":") else {
+            return nil
+        }
+        
+        let email = String(credentialsString[..<separatorIndex])
+        let password = String(credentialsString[credentialsString.index(after: separatorIndex)...])
+        
+        return (email, password)
+    }
+    
+    func saveLastLoggedInUser(email: String, password: String) {
+        let credentials = "\(email):\(password)"
+        save(credentials, forKey: "lastLoggedInUser")
+    }
+    
+    func getLastLoggedInUser() -> (email: String, password: String)? {
+        guard let credentialsString = get(forKey: "lastLoggedInUser"),
+              let separatorIndex = credentialsString.firstIndex(of: ":") else {
+            return nil
+        }
+        
+        let email = String(credentialsString[..<separatorIndex])
+        let password = String(credentialsString[credentialsString.index(after: separatorIndex)...])
+        
+        return (email, password)
+    }
 }

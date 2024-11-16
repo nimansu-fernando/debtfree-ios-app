@@ -24,6 +24,7 @@
 		9A827AE72CDB832500645F0F /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 9A827AE62CDB832500645F0F /* GoogleSignInSwift */; };
 		9A8821F42CDB27CF00E66870 /* SplashScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A8821F32CDB27CF00E66870 /* SplashScreen.swift */; };
 		9A8821F92CDB43AF00E66870 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 9A8821F82CDB43AF00E66870 /* FirebaseAuth */; };
+		9A9326132CE88CC800648FCB /* BiometricManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A9326122CE88CC800648FCB /* BiometricManager.swift */; };
 		9ABB2F972CDC8ACF0000AC3C /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ABB2F962CDC8ACF0000AC3C /* MainTabView.swift */; };
 		9ABB2F992CDCD2770000AC3C /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ABB2F982CDCD2770000AC3C /* KeychainHelper.swift */; };
 		9ABB2FA32CDCE2F00000AC3C /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ABB2FA22CDCE2F00000AC3C /* ProfileView.swift */; };
@@ -76,6 +77,7 @@
 		9A827AE12CDB812000645F0F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		9A8821F32CDB27CF00E66870 /* SplashScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashScreen.swift; sourceTree = "<group>"; };
 		9A8821FA2CDB442200E66870 /* DebtFree.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DebtFree.entitlements; sourceTree = "<group>"; };
+		9A9326122CE88CC800648FCB /* BiometricManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricManager.swift; sourceTree = "<group>"; };
 		9ABB2F962CDC8ACF0000AC3C /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		9ABB2F982CDCD2770000AC3C /* KeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
 		9ABB2FA22CDCE2F00000AC3C /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
@@ -164,6 +166,7 @@
 				9ABB2F962CDC8ACF0000AC3C /* MainTabView.swift */,
 				9A1C857B2CD6009E0049953D /* HomeView.swift */,
 				9ABB2FA22CDCE2F00000AC3C /* ProfileView.swift */,
+				9A9326122CE88CC800648FCB /* BiometricManager.swift */,
 				9A1C857F2CD6099C0049953D /* DebtsView.swift */,
 				9A1C85812CD609C70049953D /* AddDebtView.swift */,
 				9A1A091C2CE31DB300C0B294 /* EventKitManager.swift */,
@@ -354,6 +357,7 @@
 				9ABB2F992CDCD2770000AC3C /* KeychainHelper.swift in Sources */,
 				9A3291432CDA2F3300C3FFEF /* BudgetView.swift in Sources */,
 				9AF2D7F22CCE182800176584 /* ContentView.swift in Sources */,
+				9A9326132CE88CC800648FCB /* BiometricManager.swift in Sources */,
 				9A5B90422CDA41E90033F368 /* TrackingView.swift in Sources */,
 				9A827AE22CDB812000645F0F /* AppDelegate.swift in Sources */,
 				9AF2D8252CCE231C00176584 /* SignUpView.swift in Sources */,
@@ -538,6 +542,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = DebtFree/Info.plist;
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "We use face ID to securely log you into the app";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -569,6 +574,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = DebtFree/Info.plist;
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "We use face ID to securely log you into the app";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
