@@ -26,7 +26,7 @@ struct DebtFreeApp: App {
     var body: some Scene {
         WindowGroup {
             if isSignedIn {
-                CustomTabBar()
+                MainTabView()
                     .environment(\.managedObjectContext, persistenceController.container.viewContext)
             } else {
                 SignInView()
