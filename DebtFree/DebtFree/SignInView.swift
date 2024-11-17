@@ -11,6 +11,7 @@ import FirebaseAuth
 import GoogleSignIn
 
 struct SignInView: View {
+    @Environment(\.managedObjectContext) private var viewContext
     @State private var email = ""
     @State private var password = ""
     @State private var isPasswordVisible = false

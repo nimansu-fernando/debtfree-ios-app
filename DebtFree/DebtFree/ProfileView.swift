@@ -119,7 +119,6 @@ struct ProfileView: View {
                     .padding(.vertical, 8)
                 }
             }
-            .navigationTitle("Profile")
             .navigationBarTitleDisplayMode(.inline)
             .fullScreenCover(isPresented: $isLoggedOut) {
                 SignInView()

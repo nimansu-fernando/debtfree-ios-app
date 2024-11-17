@@ -8,35 +8,41 @@
 import SwiftUI
 
 struct MainTabView: View {
+    @Environment(\.managedObjectContext) private var viewContext
     @State private var selectedTab = 0
     
     var body: some View {
         TabView(selection: $selectedTab) {
             HomeView()
+                .environment(\.managedObjectContext, viewContext)
                 .tabItem {
                     Label("Home", systemImage: "house.fill")
                 }
                 .tag(0)
             
             DebtView()
+                .environment(\.managedObjectContext, viewContext)
                 .tabItem {
                     Label("Debts", systemImage: "chart.pie.fill")
                 }
                 .tag(1)
             
             PlanView()
+                .environment(\.managedObjectContext, viewContext)
                 .tabItem {
                     Label("Plan", systemImage: "calendar")
                 }
                 .tag(2)
             
             BudgetView()
+                .environment(\.managedObjectContext, viewContext)
                 .tabItem {
                     Label("Budget", systemImage: "banknote.fill")
                 }
                 .tag(3)
             
             TrackingView()
+                .environment(\.managedObjectContext, viewContext)
                 .tabItem {
                     Label("Track", systemImage: "chart.bar.fill")
                 }
