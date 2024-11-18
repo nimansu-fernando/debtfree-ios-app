@@ -221,7 +221,9 @@ struct SignInView: View {
                     
                     HStack {
                         Text("Don't have an account?")
-                        NavigationLink(destination: SignUpView()) {
+                        NavigationLink(destination: 
+                                        SignUpView().environment(\.managedObjectContext, viewContext)
+                        ) {
                             Text("Sign Up")
                                 .foregroundColor(Color("SubColor"))
                                 .bold()
@@ -242,6 +244,7 @@ struct SignInView: View {
             }
             .navigationDestination(isPresented: $isSignedIn) {
                 MainTabView()
+                    .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
             }
             .disabled(isLoading)
         }
@@ -318,6 +321,9 @@ struct SignInView: View {
                     userName = user.displayName ?? user.email ?? "User"
                     KeychainHelper.shared.save(user.uid, forKey: "uid")
                     
+                    // Initialize Core Data context for the user
+                    PersistenceController.shared.setupInitialContext(for: user.uid)
+                    
                     // Save credentials if Face ID is enabled
                     if self.useFaceID {
                         KeychainHelper.shared.saveLastLoggedInUser(email: self.email, password: self.password)
@@ -372,7 +378,13 @@ struct SignInView: View {
                         showAlert(title: "Error", message: error.localizedDescription)
                     } else if let user = authResult?.user {
                         KeychainHelper.shared.save(user.uid, forKey: "uid")
-                        isSignedIn = true
+                        
+                        // Initialize Core Data context for the user
+                        PersistenceController.shared.setupInitialContext(for: user.uid)
+                        
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            isSignedIn = true
+                        }
                     }
                 }
             }
