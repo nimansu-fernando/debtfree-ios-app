@@ -14,6 +14,7 @@
 		9A1C857C2CD6009E0049953D /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A1C857B2CD6009E0049953D /* HomeView.swift */; };
 		9A1C85802CD6099C0049953D /* DebtsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A1C857F2CD6099C0049953D /* DebtsView.swift */; };
 		9A1C85822CD609C70049953D /* AddDebtView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A1C85812CD609C70049953D /* AddDebtView.swift */; };
+		9A2EA40F2CEB5B0E00E778E3 /* NotificationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2EA40E2CEB5B0E00E778E3 /* NotificationsView.swift */; };
 		9A32913F2CDA09F600C3FFEF /* DebtDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A32913E2CDA09F600C3FFEF /* DebtDetailsView.swift */; };
 		9A3291412CDA24E300C3FFEF /* PlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A3291402CDA24E300C3FFEF /* PlanView.swift */; };
 		9A3291432CDA2F3300C3FFEF /* BudgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A3291422CDA2F3300C3FFEF /* BudgetView.swift */; };
@@ -68,6 +69,7 @@
 		9A1C857B2CD6009E0049953D /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		9A1C857F2CD6099C0049953D /* DebtsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebtsView.swift; sourceTree = "<group>"; };
 		9A1C85812CD609C70049953D /* AddDebtView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddDebtView.swift; sourceTree = "<group>"; };
+		9A2EA40E2CEB5B0E00E778E3 /* NotificationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsView.swift; sourceTree = "<group>"; };
 		9A32913E2CDA09F600C3FFEF /* DebtDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebtDetailsView.swift; sourceTree = "<group>"; };
 		9A3291402CDA24E300C3FFEF /* PlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanView.swift; sourceTree = "<group>"; };
 		9A3291422CDA2F3300C3FFEF /* BudgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BudgetView.swift; sourceTree = "<group>"; };
@@ -165,6 +167,7 @@
 				9A1C85752CD5FB4D0049953D /* ForgotPasswordView.swift */,
 				9ABB2F962CDC8ACF0000AC3C /* MainTabView.swift */,
 				9A1C857B2CD6009E0049953D /* HomeView.swift */,
+				9A2EA40E2CEB5B0E00E778E3 /* NotificationsView.swift */,
 				9ABB2FA22CDCE2F00000AC3C /* ProfileView.swift */,
 				9A9326122CE88CC800648FCB /* BiometricManager.swift */,
 				9A1C857F2CD6099C0049953D /* DebtsView.swift */,
@@ -372,6 +375,7 @@
 				9ABB2F972CDC8ACF0000AC3C /* MainTabView.swift in Sources */,
 				9A1C857C2CD6009E0049953D /* HomeView.swift in Sources */,
 				9A1C85762CD5FB4D0049953D /* ForgotPasswordView.swift in Sources */,
+				9A2EA40F2CEB5B0E00E778E3 /* NotificationsView.swift in Sources */,
 				9AF2D7F02CCE182800176584 /* DebtFreeApp.swift in Sources */,
 				9A3291412CDA24E300C3FFEF /* PlanView.swift in Sources */,
 			);

@@ -63,7 +63,7 @@ struct ProfileView: View {
                 }
                 
                 Section(header: Text("Settings")) {
-                    NavigationLink(destination: NotificationsView()) {
+                    NavigationLink(destination: NotificationsSettingsView()) {
                         Label("Notifications", systemImage: "bell.fill")
                     }
                     
@@ -149,7 +149,7 @@ struct ProfileView: View {
 }
 
 // Supporting Views remain the same
-struct NotificationsView: View {
+struct NotificationsSettingsView: View {
     var body: some View {
         List {
             Toggle("Push Notifications", isOn: .constant(true))

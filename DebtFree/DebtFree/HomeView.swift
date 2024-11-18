@@ -135,11 +135,19 @@ struct HomeView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                     
                     HStack {
-                        Image(systemName: "bell")
-                            .font(.system(size: 24))
-                            .foregroundColor(Color("MainColor"))
+                        NavigationLink(destination:
+                                        NotificationCenterView()
+                                            .navigationTitle("Notifications")
+                        ) {
+                            Image(systemName: "bell")
+                                .font(.system(size: 24))
+                                .foregroundColor(Color("MainColor"))
+                        }
                         
-                        NavigationLink(destination: ProfileView()) {
+                        NavigationLink(destination: 
+                                        ProfileView()
+                                            .navigationTitle("Profile")
+                        ) {
                             Image(systemName: "person.circle.fill")
                                 .font(.system(size: 28))
                                 .foregroundColor(Color("MainColor"))
