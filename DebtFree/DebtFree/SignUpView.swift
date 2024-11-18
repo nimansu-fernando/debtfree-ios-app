@@ -45,7 +45,6 @@ struct SignUpView: View {
                 .ignoresSafeArea()
                 
                 VStack(spacing: 20) {
-                    // Logo and titles remain the same...
                     Image("DebtFreeLogo2")
                         .resizable()
                         .frame(width: 257.62, height: 100)
@@ -242,7 +241,6 @@ struct SignUpView: View {
     }
     
     private func validateEmail() {
-        // Email validation happens in real-time as user types
         _ = isValidEmail(email)
     }
     
@@ -335,9 +333,7 @@ struct SignUpView: View {
     }
     
     private func signInWithApple() {
-        // Implement Apple Sign In
         isLoading = true
-        // Add your Apple sign-in implementation here
     }
     
     private func showAlert(title: String, message: String) {

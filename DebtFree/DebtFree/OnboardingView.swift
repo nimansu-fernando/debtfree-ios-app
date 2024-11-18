@@ -17,7 +17,6 @@ struct OnboardingView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                // Background image
                 Image("onboarding-bg")
                     .resizable()
                     .edgesIgnoringSafeArea(.all)
@@ -49,12 +48,12 @@ struct OnboardingView: View {
 
                     Spacer()
 
-                    // Custom page indicator dots with tap functionality
+                    // page indicator dots with tap functionality
                     HStack(spacing: 8) {
                         ForEach(0..<totalPages, id: \.self) { index in
                             Circle()
                                 .frame(width: 10, height: 10)
-                                .foregroundColor(currentPage == index ? .blue : .gray)
+                                .foregroundColor(currentPage == index ? Color("MainColor") : .gray)
                                 .onTapGesture {
                                     currentPage = index
                                 }
@@ -93,7 +92,7 @@ struct OnboardingView: View {
             }
             .navigationDestination(isPresented: $isNavigatingToWelcome) {
                 WelcomeView()
-                    .navigationBarBackButtonHidden(true) // Hides the back button
+                    .navigationBarBackButtonHidden(true)
                     .onAppear {
                         // Mark onboarding as completed
                         hasCompletedOnboarding = true

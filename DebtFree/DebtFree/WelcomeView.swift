@@ -17,10 +17,10 @@ struct WelcomeView: View {
                     
                     Color.white
                 }
-                .ignoresSafeArea() // Extends the colors to the edges
+                .ignoresSafeArea()
                 
                 VStack(spacing: 20) {
-                    Spacer(minLength: 10) // Add a minimum space at the top
+                    Spacer(minLength: 10)
                     
                     Image("DebtFreeLogo")
                         .resizable()
@@ -36,9 +36,9 @@ struct WelcomeView: View {
                         .font(.body)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 30)
-                        .fixedSize(horizontal: false, vertical: true) // Prevents text truncation
+                        .fixedSize(horizontal: false, vertical: true)
                     
-                    Spacer() // Space between text and buttons
+                    Spacer()
                     
                     VStack(spacing: 15) {
                         NavigationLink(destination: SignInView()) {
@@ -61,9 +61,9 @@ struct WelcomeView: View {
                     }
                     .padding(.horizontal, 30)
                     
-                    Spacer() // Space before the footer
+                    Spacer()
                     
-                    VStack(spacing: 4) { // Adjust spacing as needed for line height
+                    VStack(spacing: 4) {
                         Text("By continuing, you agree to our")
                             .font(.footnote)
                             .multilineTextAlignment(.center)
@@ -77,15 +77,15 @@ struct WelcomeView: View {
                         }
                         .font(.footnote)
                     }
-                    .foregroundColor(.gray) // Apply the gray color to the entire VStack if desired
+                    .foregroundColor(.gray)
                     
-                    Spacer(minLength: 20) // Space at the bottom
+                    Spacer(minLength: 20)
                 }
-                .padding() // General padding for the VStack
+                .padding()
             }
         }
-        .navigationBarHidden(true) // Hides the navigation header
-        .navigationBarBackButtonHidden(true) // Hides the back button
+        .navigationBarHidden(true)
+        .navigationBarBackButtonHidden(true) 
     }
 }
 

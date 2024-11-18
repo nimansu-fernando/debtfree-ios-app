@@ -27,7 +27,7 @@ struct SplashScreen: View {
             
             VStack(spacing: 10) {
                 // Logo and Text combined image
-                Image("DebtFreeLogo2") // Make sure to add this image to your asset catalog
+                Image("DebtFreeLogo2")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 250)
@@ -60,7 +60,6 @@ struct SplashScreen: View {
     }
 }
 
-// Main App View that manages the splash screen
 struct MainView: View {
     @State private var showSplash = true
     
@@ -70,7 +69,6 @@ struct MainView: View {
                 SplashScreen(showSplash: $showSplash)
                     .transition(.opacity)
             } else {
-                // Your main app content here
                 OnboardingView()
                     .transition(.opacity)
             }
@@ -78,7 +76,6 @@ struct MainView: View {
     }
 }
 
-// Preview provider
 struct SplashScreen_Previews: PreviewProvider {
     static var previews: some View {
         MainView()

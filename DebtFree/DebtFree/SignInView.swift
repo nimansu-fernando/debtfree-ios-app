@@ -47,7 +47,6 @@ struct SignInView: View {
                 .ignoresSafeArea()
                 
                 VStack(spacing: 20) {
-                    // Logo
                     Image("DebtFreeLogo2")
                         .resizable()
                         .scaledToFit()
