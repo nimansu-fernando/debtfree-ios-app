@@ -69,13 +69,34 @@ struct NotificationCenterView: View {
     }
     
     var filteredNotifications: [NotificationItem] {
+        let userID = Auth.auth().currentUser?.uid ?? ""
+        
+        // First filter based on user-specific notification preferences
+        let notificationsBasedOnPreferences = notifications.filter { notification in
+            switch notification.type {
+            case .paymentDue:
+                return UserDefaults.standard.getNotificationSetting(for: .paymentDue, userID: userID)
+            case .paymentOverdue:
+                return UserDefaults.standard.getNotificationSetting(for: .paymentOverdue, userID: userID)
+            case .paymentSuccess:
+                return UserDefaults.standard.getNotificationSetting(for: .paymentSuccess, userID: userID)
+            case .highInterest:
+                return UserDefaults.standard.getNotificationSetting(for: .highInterest, userID: userID)
+            case .milestone:
+                return UserDefaults.standard.getNotificationSetting(for: .milestone, userID: userID)
+            case .general:
+                return UserDefaults.standard.getNotificationSetting(for: .general, userID: userID)
+            }
+        }
+        
+        // Then filter based on selected category
         switch selectedFilter {
         case .all:
-            return notifications
+            return notificationsBasedOnPreferences
         case .payments:
-            return notifications.filter { [.paymentDue, .paymentOverdue, .paymentSuccess].contains($0.type) }
+            return notificationsBasedOnPreferences.filter { [.paymentDue, .paymentOverdue, .paymentSuccess].contains($0.type) }
         case .milestones:
-            return notifications.filter { $0.type == .milestone }
+            return notificationsBasedOnPreferences.filter { $0.type == .milestone }
         }
     }
     
@@ -168,7 +189,6 @@ struct NotificationCenterView: View {
         return formatter.string(from: date)
     }
 }
-
 struct FilterTab: View {
     let title: String
     let isSelected: Bool

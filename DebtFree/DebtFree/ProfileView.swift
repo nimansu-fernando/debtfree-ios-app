@@ -9,6 +9,43 @@ import SwiftUI
 import FirebaseAuth
 import LocalAuthentication
 
+extension UserDefaults {
+    enum NotificationKeys: String {
+        case paymentDue = "notification_payment_due"
+        case paymentOverdue = "notification_payment_overdue"
+        case paymentSuccess = "notification_payment_success"
+        case highInterest = "notification_high_interest"
+        case milestone = "notification_milestone"
+        case general = "notification_general"
+        
+        static var allCases: [NotificationKeys] {
+            [.paymentDue, .paymentOverdue, .paymentSuccess, .highInterest, .milestone, .general]
+        }
+        
+        // Get user-specific key
+        func keyForUser(_ userID: String) -> String {
+            return "\(userID)_\(self.rawValue)"
+        }
+    }
+    
+    // Helper methods for user-specific notification settings
+    func setNotificationSetting(_ value: Bool, for key: NotificationKeys, userID: String) {
+        set(value, forKey: key.keyForUser(userID))
+    }
+    
+    func getNotificationSetting(for key: NotificationKeys, userID: String) -> Bool {
+        // Default to true if setting hasn't been explicitly set
+        return bool(forKey: key.keyForUser(userID))
+    }
+}
+
+struct NotificationSettingItem: Identifiable {
+    let id = UUID()
+    let type: NotificationItem.NotificationType
+    let title: String
+    let description: String
+    let defaultKey: UserDefaults.NotificationKeys
+}
 
 struct ProfileView: View {
     @State private var isLoggedOut = false
@@ -148,15 +185,133 @@ struct ProfileView: View {
     }
 }
 
-// Supporting Views remain the same
 struct NotificationsSettingsView: View {
+    @State private var userID: String
+    
+    // Using computed properties to handle user-specific settings
+    private var isPaymentDueEnabled: Binding<Bool> {
+        Binding(
+            get: { UserDefaults.standard.getNotificationSetting(for: .paymentDue, userID: userID) },
+            set: { UserDefaults.standard.setNotificationSetting($0, for: .paymentDue, userID: userID) }
+        )
+    }
+    
+    private var isPaymentOverdueEnabled: Binding<Bool> {
+        Binding(
+            get: { UserDefaults.standard.getNotificationSetting(for: .paymentOverdue, userID: userID) },
+            set: { UserDefaults.standard.setNotificationSetting($0, for: .paymentOverdue, userID: userID) }
+        )
+    }
+    
+    private var isPaymentSuccessEnabled: Binding<Bool> {
+        Binding(
+            get: { UserDefaults.standard.getNotificationSetting(for: .paymentSuccess, userID: userID) },
+            set: { UserDefaults.standard.setNotificationSetting($0, for: .paymentSuccess, userID: userID) }
+        )
+    }
+    
+    private var isHighInterestEnabled: Binding<Bool> {
+        Binding(
+            get: { UserDefaults.standard.getNotificationSetting(for: .highInterest, userID: userID) },
+            set: { UserDefaults.standard.setNotificationSetting($0, for: .highInterest, userID: userID) }
+        )
+    }
+    
+    private var isMilestoneEnabled: Binding<Bool> {
+        Binding(
+            get: { UserDefaults.standard.getNotificationSetting(for: .milestone, userID: userID) },
+            set: { UserDefaults.standard.setNotificationSetting($0, for: .milestone, userID: userID) }
+        )
+    }
+    
+    private var isGeneralEnabled: Binding<Bool> {
+        Binding(
+            get: { UserDefaults.standard.getNotificationSetting(for: .general, userID: userID) },
+            set: { UserDefaults.standard.setNotificationSetting($0, for: .general, userID: userID) }
+        )
+    }
+    
+    init() {
+        // Get current user ID
+        self._userID = State(initialValue: Auth.auth().currentUser?.uid ?? "")
+    }
+    
+    private let notificationSettings: [NotificationSettingItem] = [
+        NotificationSettingItem(
+            type: .paymentDue,
+            title: "Payment Due Reminders",
+            description: "Get notified when payments are approaching due date",
+            defaultKey: .paymentDue
+        ),
+//        NotificationSettingItem(
+//            type: .paymentOverdue,
+//            title: "Overdue Payments",
+//            description: "Get notified when payments are overdue",
+//            defaultKey: .paymentOverdue
+//        ),
+//        NotificationSettingItem(
+//            type: .paymentSuccess,
+//            title: "Payment Success",
+//            description: "Get notified when payments are successfully processed",
+//            defaultKey: .paymentSuccess
+//        ),
+        NotificationSettingItem(
+            type: .highInterest,
+            title: "High Interest Alerts",
+            description: "Get notified about debts with high interest rates",
+            defaultKey: .highInterest
+        ),
+        NotificationSettingItem(
+            type: .milestone,
+            title: "Milestone Achievements",
+            description: "Get notified when you reach payment milestones",
+            defaultKey: .milestone
+        )
+    ]
+    
     var body: some View {
         List {
-            Toggle("Push Notifications", isOn: .constant(true))
-            Toggle("Email Notifications", isOn: .constant(true))
-            Toggle("Payment Reminders", isOn: .constant(true))
+            ForEach(notificationSettings) { setting in
+                NotificationSettingRow(
+                    title: setting.title,
+                    description: setting.description,
+                    isEnabled: binding(for: setting.defaultKey)
+                )
+            }
         }
-        .navigationTitle("Notifications")
+        .navigationTitle("Notification Settings")
+    }
+    
+    private func binding(for key: UserDefaults.NotificationKeys) -> Binding<Bool> {
+        switch key {
+        case .paymentDue: return isPaymentDueEnabled
+        case .paymentOverdue: return isPaymentOverdueEnabled
+        case .paymentSuccess: return isPaymentSuccessEnabled
+        case .highInterest: return isHighInterestEnabled
+        case .milestone: return isMilestoneEnabled
+        case .general: return isGeneralEnabled
+        }
+    }
+}
+
+// Simple row component for notification settings
+struct NotificationSettingRow: View {
+    let title: String
+    let description: String
+    @Binding var isEnabled: Bool
+    
+    var body: some View {
+        Toggle(isOn: $isEnabled) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .foregroundColor(.primary)
+                
+                Text(description)
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+            }
+        }
+        .toggleStyle(SwitchToggleStyle(tint: Color("MainColor")))
     }
 }
 
