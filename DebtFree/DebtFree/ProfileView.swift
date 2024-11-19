@@ -82,7 +82,7 @@ struct ProfileView: View {
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                             .frame(width: 50, height: 50)
-                            .foregroundColor(.blue)
+                            .foregroundColor(Color("MainColor"))
                             .clipShape(Circle())
                             .overlay(Circle().stroke(Color.white, lineWidth: 4))
                         
@@ -344,10 +344,7 @@ struct FAQView: View {
 struct TermsAndConditionsView: View {
     var body: some View {
         ScrollView {
-            Text("Terms and Conditions")
-                .font(.title)
-                .padding()
-            Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit...")
+            Text("The customer is very important, the customer will be followed by the customer...")
                 .padding()
         }
         .navigationTitle("Terms & Conditions")
@@ -357,9 +354,6 @@ struct TermsAndConditionsView: View {
 struct PrivacyPolicyView: View {
     var body: some View {
         ScrollView {
-            Text("Privacy Policy")
-                .font(.title)
-                .padding()
             Text("Your privacy is important to us...")
                 .padding()
         }

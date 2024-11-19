@@ -35,6 +35,7 @@ struct AddDebtView: View {
    @State private var showingCalendarPermissionAlert = false
    @State private var showingEventSavedAlert = false
    @State private var showingErrorAlert = false
+   @State private var showingSuccessAlert = false
    @State private var errorMessage = ""
     
     var body: some View {
@@ -220,8 +221,12 @@ struct AddDebtView: View {
                             .padding()
                             .background(Color(.systemGray6))
                             .cornerRadius(8)
+                            .onChange(of: addReminders) { newValue in
+                                if newValue {
+                                    requestCalendarAccess()
+                                }
+                            }
                         
-                        // Note to the user about the reminder timing
                         if addReminders {
                             Text("Reminders will be set 2 days before the due date.")
                                 .font(.caption)
@@ -246,12 +251,6 @@ struct AddDebtView: View {
                     // Add Debt Button
                     Button(action: {
                         addDebt()
-                        if addReminders {
-                            createCalendarEvent()
-                        }
-                        //fetchAndPrintAllDebts()
-                        //fetchAndPrintAllPayments()
-                        dismiss()
                     }) {
                         Text("Add Debt")
                             .font(.headline)
@@ -280,6 +279,16 @@ struct AddDebtView: View {
             } message: {
                 Text(errorMessage)
             }
+            .alert("Success", isPresented: $showingSuccessAlert) {
+                Button("OK", role: .cancel) {
+                    if addReminders {
+                        createCalendarEvent()
+                    }
+                    dismiss()
+                }
+            } message: {
+                Text("Debt has been successfully created!")
+            }
             .navigationTitle("Add a Debt")
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarItems(
@@ -292,6 +301,16 @@ struct AddDebtView: View {
         .onAppear {
             if let user = Auth.auth().currentUser {
                 self.userID = user.uid
+            }
+        }
+    }
+    
+    private func requestCalendarAccess() {
+        EventKitManager.shared.requestAccess { granted in
+            DispatchQueue.main.async {
+                if !granted {
+                    showingCalendarPermissionAlert = true
+                }
             }
         }
     }
@@ -402,8 +421,11 @@ struct AddDebtView: View {
 
         do {
             try viewContext.save()
+            showingSuccessAlert = true
             print("Debt and payments saved successfully with ID: \(newDebt.debtID?.uuidString ?? "unknown")")
         } catch {
+            errorMessage = "Failed to save debt: \(error.localizedDescription)"
+            showingErrorAlert = true
             print("Failed to save debt: \(error.localizedDescription)")
         }
         
