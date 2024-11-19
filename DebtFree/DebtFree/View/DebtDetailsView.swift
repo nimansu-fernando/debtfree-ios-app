@@ -5,41 +5,12 @@
 //  Created by COBSCCOMPY4231P-006 on 2024-11-05.
 //
 
+import Foundation
 import SwiftUI
 import CoreData
 import Charts
 
-// Move EditableField enum outside the view and make it conform to Identifiable
-enum EditableField: String, Identifiable {
-    case debtName
-    case lenderName
-    case currentBalance
-    case apr
-    case minimumPayment
-    case minimumPaymentCalc
-    case paymentFrequency
-    case nextPaymentDate
-    case notes
-    
-    // Required by Identifiable protocol
-    var id: String { self.rawValue }
-    
-    var title: String {
-        switch self {
-        case .debtName: return "Debt Name"
-        case .lenderName: return "Lending Institution"
-        case .currentBalance: return "Current Balance"
-        case .apr: return "Annual Percentage Rate"
-        case .minimumPayment: return "Minimum Payment"
-        case .minimumPaymentCalc: return "Minimum Payment Calculation"
-        case .paymentFrequency: return "Payment Frequency"
-        case .nextPaymentDate: return "Next Payment Due Date"
-        case .notes: return "Notes"
-        }
-    }
-}
-
-// Add helper functions for payoff calculations
+// Payoff calculations
 extension Debt {
     func calculatePayoffDate() -> Date {
         let balance = self.currentBalance - self.paidAmount
@@ -71,27 +42,6 @@ extension Debt {
     }
 }
 
-struct PayoffPoint: Identifiable {
-    let id = UUID()
-    let month: String
-    let balance: Double
-}
-
-struct PaymentBreakdown: Identifiable {
-    let id = UUID()
-    let month: String
-    let principal: Double
-    let interest: Double
-    let remainingBalance: Double
-}
-
-struct CostBreakdown: Identifiable {
-    let id = UUID()
-    let category: String
-    let amount: Double
-    var color: Color
-}
-
 struct DebtDetailsView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @State private var selectedTab = 0
@@ -105,15 +55,15 @@ struct DebtDetailsView: View {
         VStack(spacing: 0) {
             // Navigation Bar
             /*HStack {
-                Spacer()
-                Text(debt.debtName ?? "Unknown")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                Spacer()
-            }
-            .padding()
-            .background(Color.white)*/
-
+             Spacer()
+             Text(debt.debtName ?? "Unknown")
+             .font(.headline)
+             .frame(maxWidth: .infinity, alignment: .center)
+             Spacer()
+             }
+             .padding()
+             .background(Color.white)*/
+            
             
             // Tab Bar
             Picker("", selection: $selectedTab) {
@@ -259,7 +209,6 @@ struct ProgressViewTab: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
-                // Updated Debt Payoff Date section
                 VStack(alignment: .center, spacing: 8) {
                     HStack {
                         Image(systemName: "calendar")
@@ -354,7 +303,7 @@ struct ProgressViewTab: View {
                 .background(Color(.systemGray6))
                 .cornerRadius(10)
                 
-                // New Cost Breakdown Section
+                // Cost Breakdown Section
                 VStack(spacing: 20) {
                     Text("Cost Breakdown")
                         .font(.headline)
@@ -363,7 +312,7 @@ struct ProgressViewTab: View {
                     let breakdown = calculateTotalInterest()
                     let totalCost = breakdown.principal + breakdown.interest
                     
-                    // Total Cost Row - Moved to the top
+                    // Total Cost Row
                     VStack(spacing: 4) {
                         Text("Total Cost")
                             .font(.subheadline)
@@ -443,9 +392,9 @@ struct ProgressViewTab: View {
                 .padding()
                 .background(Color(.systemGray6))
                 .cornerRadius(10)
-
                 
-                // New Monthly Payment Breakdown Section
+                
+                // Monthly Payment Breakdown Section
                 VStack(spacing: 20) {
                     Text("Monthly Payment Breakdown")
                         .font(.headline)
@@ -542,7 +491,7 @@ struct ProgressViewTab: View {
                 .background(Color(.systemGray6))
                 .cornerRadius(10)
                 
-                // New Payoff Timeline section
+                // Payoff Timeline section
                 VStack(spacing: 20) {
                     Text("Payoff Timeline")
                         .font(.headline)
@@ -604,7 +553,7 @@ struct ProgressViewTab: View {
 struct TransactionsView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @State private var isUpcomingSelected = true
-    let debt: Debt // Add debt property to access the debt ID
+    let debt: Debt
     
     // Fetch requests for upcoming and past payments
     private var upcomingPayments: FetchRequest<Payment>
@@ -613,7 +562,6 @@ struct TransactionsView: View {
     init(debt: Debt) {
         self.debt = debt
         
-        // Safely handle the debtID
         let debtID = debt.debtID ?? UUID()
         
         // Initialize fetch request for upcoming payments
@@ -636,7 +584,7 @@ struct TransactionsView: View {
             ])
         )
     }
-
+    
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
@@ -731,7 +679,6 @@ struct PaymentRowView: View {
     
     var body: some View {
         HStack {
-            // Status icon
             Image(systemName: isPast ? "checkmark.circle.fill" : "clock")
                 .foregroundColor(isPast ? .green : .blue)
                 .frame(width: 30, height: 30)
@@ -760,7 +707,7 @@ struct PaymentRowView: View {
                             .foregroundColor(.gray)
                     }
                 } else {
-                    // For upcoming payments, show principal and interest
+                    // For upcoming payments show principal and interest
                     let interest = calculateInterest()
                     let payaAmount = debt.minimumPayment + interest
                     
@@ -771,7 +718,7 @@ struct PaymentRowView: View {
                     Text("Interest: LKR \(String(format: "%.2f", interest))")
                         .font(.caption)
                         .foregroundColor(.blue)
-                        
+                    
                     Text("Payment Due")
                         .font(.caption)
                         .foregroundColor(.blue)
@@ -915,7 +862,7 @@ struct DetailsView: View {
     }
     
     private func deleteDebtAndPayments() {
-        // First, fetch all associated payments
+        // Fetch all associated payments
         let fetchRequest: NSFetchRequest<Payment> = Payment.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "debtID == %@", debt.debtID! as CVarArg)
         
@@ -967,7 +914,6 @@ struct DetailsView: View {
         
         do {
             try viewContext.save()
-            // Dismiss the view after successful deletion
             dismiss()
         } catch {
             print("Error deleting debt: \(error)")
@@ -985,12 +931,10 @@ struct EditDetailView: View {
     @Binding var showAlert: Bool
     @Binding var alertMessage: String
     
-    // State variables for different types of edits
     @State private var textInput: String = ""
     @State private var dateInput: Date = Date()
     @State private var numberInput: String = ""
     
-    // State variables for pickers
     @State private var selectedPaymentCalc: String = ""
     @State private var selectedFrequency: String = ""
     
@@ -1007,23 +951,23 @@ struct EditDetailView: View {
                         DatePicker("Select Date", selection: $dateInput, displayedComponents: .date)
                         
                     case .minimumPaymentCalc:
-                        Picker(selection: $selectedPaymentCalc, label: Text("")) { // Empty label text
+                        Picker(selection: $selectedPaymentCalc, label: Text("")) {
                             ForEach(paymentCalcOptions, id: \.self) { option in
                                 Text(option).tag(option)
                             }
                         }
                         .pickerStyle(MenuPickerStyle())
-                        .labelsHidden() // Hides any residual label spacing
-
+                        .labelsHidden()
+                        
                     case .paymentFrequency:
-                        Picker(selection: $selectedFrequency, label: Text("")) { // Empty label text
+                        Picker(selection: $selectedFrequency, label: Text("")) {
                             ForEach(frequencyOptions, id: \.self) { option in
                                 Text(option).tag(option)
                             }
                         }
                         .pickerStyle(MenuPickerStyle())
-                        .labelsHidden() // Hides any residual label spacing
-
+                        .labelsHidden()
+                        
                         
                     case .currentBalance, .minimumPayment, .apr:
                         TextField("Enter value", text: $numberInput)

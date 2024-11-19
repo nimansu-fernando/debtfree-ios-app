@@ -127,7 +127,6 @@ struct HomeView: View {
     var body: some View {
         NavigationStack {
             VStack {
-                // Custom Header
                 HStack {
                     Text("Hi, \(userName)!")
                         .font(.system(size: 25, weight: .bold))
@@ -137,8 +136,8 @@ struct HomeView: View {
                     HStack {
                         NavigationLink(destination:
                                         NotificationCenterView()
-                                            .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
-                                            .navigationTitle("Notifications")
+                            .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
+                            .navigationTitle("Notifications")
                         ) {
                             Image(systemName: "bell")
                                 .font(.system(size: 24))
@@ -147,7 +146,7 @@ struct HomeView: View {
                         
                         NavigationLink(destination: 
                                         ProfileView()
-                                            .navigationTitle("Profile")
+                            .navigationTitle("Profile")
                         ) {
                             Image(systemName: "person.circle.fill")
                                 .font(.system(size: 28))
@@ -161,7 +160,6 @@ struct HomeView: View {
                 
                 ScrollView {
                     VStack(spacing: 20) {
-                        // Header Card - Debt-Free Countdown
                         ZStack {
                             Rectangle()
                                 .fill(Color("CountDownCardColor"))
@@ -198,7 +196,7 @@ struct HomeView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                         .shadow(radius: 0.5)
                         
-                        // Quick Actions Card (Modified)
+                        // Quick Actions Card
                         QuickActionsCard(showingAddDebtSheet: $showingAddDebtSheet)
                         
                         // Progress Card
@@ -282,7 +280,6 @@ struct HomeView: View {
             .background(Color(.systemGray6))
             .onAppear {
                 if let user = Auth.auth().currentUser {
-                    // Use email if displayName is nil, then extract username part
                     if let displayName = user.displayName, !displayName.isEmpty {
                         userName = displayName
                     } else if let email = user.email {
@@ -302,7 +299,7 @@ struct HomeView: View {
     }
 }
 
-// Quick Actions Card (Simplified)
+// Quick Actions Card
 struct QuickActionsCard: View {
     @Binding var showingAddDebtSheet: Bool
     
@@ -393,6 +390,7 @@ struct FinancialInsightsCard: View {
     }
 }
 
+// Insight Row
 struct InsightRow: View {
     let icon: String
     let color: Color
@@ -418,6 +416,7 @@ struct InsightRow: View {
     }
 }
 
+// Time Block 
 struct TimeBlock: View {
     let value: String
     let label: String

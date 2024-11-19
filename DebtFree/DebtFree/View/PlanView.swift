@@ -5,16 +5,11 @@
 //  Created by COBSCCOMPY4231P-006 on 2024-11-05.
 //
 
+import Foundation
 import SwiftUI
 import CoreData
 import FirebaseAuth
 import Charts
-
-struct ProgressData: Identifiable {
-    let id = UUID()
-    let type: String
-    let value: Double
-}
 
 struct PlanSummary {
     var nextDebtPayoff: String
@@ -34,7 +29,6 @@ struct PlanView: View {
     @State private var userID: String = ""
     @State private var selectedDebt: Debt?
     
-    // FetchRequest for all debts
     @FetchRequest private var debts: FetchedResults<Debt>
     
     init() {
@@ -48,7 +42,7 @@ struct PlanView: View {
     }
     
     private func calculatePlanSummary() {
-        // First get all debts with completed payments
+        // Get all debts with completed payments
         let completedDebtIDs = debts.compactMap { debt -> UUID? in
             let fetchRequest: NSFetchRequest<Payment> = Payment.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "debtID == %@", debt.debtID! as CVarArg)
@@ -181,10 +175,10 @@ struct PlanView: View {
     private func getLastPayment(for debt: Debt) -> Payment? {
         let fetchRequest: NSFetchRequest<Payment> = Payment.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "debtID == %@ AND status == %@",
-                                           debt.debtID! as CVarArg,
-                                           "completed")
+                                             debt.debtID! as CVarArg,
+                                             "completed")
         fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \Payment.paidDate,
-                                                        ascending: false)]
+                                                         ascending: false)]
         fetchRequest.fetchLimit = 1
         
         do {
@@ -195,7 +189,7 @@ struct PlanView: View {
             return nil
         }
     }
-
+    
     private func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
@@ -205,8 +199,8 @@ struct PlanView: View {
     private func getTotalAmountPaid(for debt: Debt) -> Double {
         let fetchRequest: NSFetchRequest<Payment> = Payment.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "debtID == %@ AND status == %@",
-                                           debt.debtID! as CVarArg,
-                                           "completed")
+                                             debt.debtID! as CVarArg,
+                                             "completed")
         
         do {
             let payments = try viewContext.fetch(fetchRequest)
@@ -221,7 +215,6 @@ struct PlanView: View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 24) {
-                    // Header
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Payoff Plan")
                             .font(.title)
@@ -278,7 +271,7 @@ struct PlanView: View {
                                 strokeWidth: 5
                             )
                         }
-
+                        
                         // Current Focus Debt Section
                         if let focusDebt = summary.currentFocusDebt {
                             VStack(alignment: .leading, spacing: 16) {
@@ -339,7 +332,7 @@ struct PlanView: View {
                                     let totalPaid = getTotalAmountPaid(for: debt)
                                     SettledDebtCard(
                                         name: debt.debtName ?? "Unknown",
-                                        amount: totalPaid, // Changed from debt.currentBalance to totalPaid
+                                        amount: totalPaid,
                                         date: formatDate(lastPayment?.paidDate ?? Date())
                                     )
                                 }
@@ -371,7 +364,7 @@ struct PlanView: View {
         debts.nsPredicate = NSPredicate(format: "userID == %@", userID)
     }
 }
-    
+
 
 struct SummaryCard: View {
     let icon: String
@@ -381,8 +374,8 @@ struct SummaryCard: View {
     let leftValue: String
     let rightLabel: String
     let rightValue: String
-    let strokeColor: Color // Add this property to define the stroke color
-    let strokeWidth: CGFloat // Add this property to define the stroke width
+    let strokeColor: Color
+    let strokeWidth: CGFloat
     
     var body: some View {
         VStack(spacing: 16) {
@@ -419,7 +412,7 @@ struct SummaryCard: View {
         .background(Color.white)
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(strokeColor, lineWidth: strokeWidth) // Add the stroke
+                .stroke(strokeColor, lineWidth: strokeWidth)
         )
         .cornerRadius(12)
         .padding(.horizontal)
@@ -434,7 +427,6 @@ struct DebtInfoCard: View {
     let progress: Double
     let debt: Debt
     
-    // Data for the progress chart
     private var chartData: [ProgressData] {
         [
             ProgressData(type: "Paid", value: progress * 100),
@@ -452,7 +444,7 @@ struct DebtInfoCard: View {
             }
             
             HStack(spacing: 24) {
-                // Progress Chart using SwiftUI Charts
+                // Progress Chart
                 Chart(chartData) { segment in
                     SectorMark(
                         angle: .value("Progress", segment.value),

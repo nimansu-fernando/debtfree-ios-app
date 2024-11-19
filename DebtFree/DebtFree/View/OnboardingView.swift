@@ -13,14 +13,14 @@ struct OnboardingView: View {
     let totalPages = 3
     
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
-
+    
     var body: some View {
         NavigationStack {
             ZStack {
                 Image("onboarding-bg")
                     .resizable()
                     .edgesIgnoringSafeArea(.all)
-
+                
                 VStack {
                     TabView(selection: $currentPage) {
                         OnboardingPageView(
@@ -29,14 +29,14 @@ struct OnboardingView: View {
                             description: "Your journey to financial freedom starts here. Track, manage, and pay off your debts with ease."
                         )
                         .tag(0)
-
+                        
                         OnboardingPageView(
                             imageName: "onboarding2-graphic",
                             title: "Track Your Debts, Simplify Payments",
                             description: "Add all your debts, from loans to credit cards, and watch as DebtFree helps you prioritize payments with the Snowball Method."
                         )
                         .tag(1)
-
+                        
                         OnboardingPageView(
                             imageName: "onboarding3-graphic",
                             title: "Stay on Top of Your Payments",
@@ -45,9 +45,9 @@ struct OnboardingView: View {
                         .tag(2)
                     }
                     .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-
+                    
                     Spacer()
-
+                    
                     // page indicator dots with tap functionality
                     HStack(spacing: 8) {
                         ForEach(0..<totalPages, id: \.self) { index in
@@ -60,7 +60,7 @@ struct OnboardingView: View {
                         }
                     }
                     .padding(.bottom, 20)
-
+                    
                     // Button and Skip Link
                     VStack(spacing: 10) {
                         Button(action: {
@@ -78,7 +78,7 @@ struct OnboardingView: View {
                                 .cornerRadius(25)
                         }
                         .padding(.horizontal)
-
+                        
                         if currentPage < totalPages - 1 {
                             Button("Skip") {
                                 isNavigatingToWelcome = true
@@ -106,7 +106,7 @@ struct OnboardingPageView: View {
     let imageName: String
     let title: String
     let description: String
-
+    
     var body: some View {
         VStack(spacing: 20) {
             Image(imageName)

@@ -32,11 +32,11 @@ struct AddDebtView: View {
     @State private var notes: String = ""
     
     // Alert states
-   @State private var showingCalendarPermissionAlert = false
-   @State private var showingEventSavedAlert = false
-   @State private var showingErrorAlert = false
-   @State private var showingSuccessAlert = false
-   @State private var errorMessage = ""
+    @State private var showingCalendarPermissionAlert = false
+    @State private var showingEventSavedAlert = false
+    @State private var showingErrorAlert = false
+    @State private var showingSuccessAlert = false
+    @State private var errorMessage = ""
     
     var body: some View {
         NavigationView {
@@ -295,7 +295,7 @@ struct AddDebtView: View {
                 leading: Button("Back") {
                     dismiss()
                 }
-                .foregroundColor(Color("MainColor"))
+                    .foregroundColor(Color("MainColor"))
             )
         }
         .onAppear {
@@ -401,7 +401,7 @@ struct AddDebtView: View {
         let newDebt = Debt(context: viewContext)
         
         // Generate a unique ID for the debt
-        newDebt.debtID = UUID()  // This assumes debtID is UUID type in Core Data
+        newDebt.debtID = UUID()
         newDebt.userID = userID
         newDebt.debtType = debtType.isEmpty ? nil : debtType
         newDebt.debtName = debtName.isEmpty ? nil : debtName
@@ -415,10 +415,10 @@ struct AddDebtView: View {
         newDebt.addReminders = addReminders
         newDebt.notes = notes.isEmpty ? nil : notes
         newDebt.paidAmount = 0.0
-
+        
         // Generate and save upcoming payments
         generateUpcomingPayments(for: newDebt)
-
+        
         do {
             try viewContext.save()
             showingSuccessAlert = true
@@ -432,6 +432,57 @@ struct AddDebtView: View {
         let urls = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask)
         if let applicationSupportURL = urls.first?.appendingPathComponent("Application Support") {
             print("Database URL: \(applicationSupportURL)")
+        }
+    }
+    
+    // Function to generate upcoming payments until debt is zero
+    private func generateUpcomingPayments(for debt: Debt) {
+        guard let debtID = debt.debtID,
+              let frequency = debt.paymentFrequency,
+              let startDate = debt.nextPaymentDate else {
+            return
+        }
+        
+        var currentBalance = debt.currentBalance - debt.paidAmount
+        let minimumPayment = debt.minimumPayment
+        var currentDate = startDate
+        
+        // Continue generating payments until balance is zero or very close to zero
+        while currentBalance > 0.01 {
+            let payment = Payment(context: viewContext)
+            payment.paymentID = UUID()
+            payment.userID = debt.userID
+            payment.debtID = debtID
+            
+            // For the last payment use the remaining balance if it's less than minimum payment
+            let paymentAmount = min(minimumPayment, currentBalance)
+            payment.balance = currentBalance
+            payment.amountPaid = 0.0
+            payment.paymentDueDate = currentDate
+            payment.status = "upcoming"
+            payment.paidDate = nil
+            
+            // Update balance for next payment (subtract minimum payment without interest)
+            currentBalance = currentBalance - paymentAmount
+            
+            // Calculate next payment date based on frequency
+            currentDate = calculateNextPaymentDate(from: currentDate, frequency: frequency)
+        }
+    }
+    
+    // Helper function to calculate next payment date remains the same
+    private func calculateNextPaymentDate(from date: Date, frequency: String) -> Date {
+        let calendar = Calendar.current
+        
+        switch frequency.lowercased() {
+        case "monthly":
+            return calendar.date(byAdding: .month, value: 1, to: date) ?? date
+        case "bi-weekly":
+            return calendar.date(byAdding: .day, value: 14, to: date) ?? date
+        case "weekly":
+            return calendar.date(byAdding: .day, value: 7, to: date) ?? date
+        default:
+            return calendar.date(byAdding: .month, value: 1, to: date) ?? date
         }
     }
     
@@ -464,57 +515,6 @@ struct AddDebtView: View {
         }
     }
     
-    // Function to generate upcoming payments until debt is zero
-    private func generateUpcomingPayments(for debt: Debt) {
-        guard let debtID = debt.debtID,
-              let frequency = debt.paymentFrequency,
-              let startDate = debt.nextPaymentDate else {
-            return
-        }
-        
-        var currentBalance = debt.currentBalance - debt.paidAmount
-        let minimumPayment = debt.minimumPayment
-        var currentDate = startDate
-        
-        // Continue generating payments until balance is zero or very close to zero
-        while currentBalance > 0.01 {
-            let payment = Payment(context: viewContext)
-            payment.paymentID = UUID()
-            payment.userID = debt.userID
-            payment.debtID = debtID
-            
-            // For the last payment, use the remaining balance if it's less than minimum payment
-            let paymentAmount = min(minimumPayment, currentBalance)
-            payment.balance = currentBalance
-            payment.amountPaid = 0.0
-            payment.paymentDueDate = currentDate
-            payment.status = "upcoming"
-            payment.paidDate = nil
-            
-            // Update balance for next payment (subtract minimum payment without interest)
-            currentBalance = currentBalance - paymentAmount
-            
-            // Calculate next payment date based on frequency
-            currentDate = calculateNextPaymentDate(from: currentDate, frequency: frequency)
-        }
-    }
-
-    // Helper function to calculate next payment date remains the same
-    private func calculateNextPaymentDate(from date: Date, frequency: String) -> Date {
-        let calendar = Calendar.current
-        
-        switch frequency.lowercased() {
-        case "monthly":
-            return calendar.date(byAdding: .month, value: 1, to: date) ?? date
-        case "bi-weekly":
-            return calendar.date(byAdding: .day, value: 14, to: date) ?? date
-        case "weekly":
-            return calendar.date(byAdding: .day, value: 7, to: date) ?? date
-        default:
-            return calendar.date(byAdding: .month, value: 1, to: date) ?? date
-        }
-    }
-    
     // Function to fetch and print all payments for debugging
     private func fetchAndPrintAllPayments() {
         let fetchRequest: NSFetchRequest<Payment> = Payment.fetchRequest()
@@ -526,7 +526,7 @@ struct AddDebtView: View {
             
             for payment in payments {
                 print("----")
-                print("paymentID: \(payment.paymentID?.uuidString ?? "N/A")")  // Correctly access UUID string
+                print("paymentID: \(payment.paymentID?.uuidString ?? "N/A")")
                 print("userID: \(payment.userID ?? "N/A")")
                 print("debtID: \(String(describing: payment.debtID))")
                 print("balance: \(String(format: "%.2f", payment.balance))")
@@ -577,14 +577,13 @@ struct DebtTypeSelectionView: View {
                         isPresented = false
                     }) {
                         HStack {
-                            // Display the icon with a larger size and padding
                             Image(systemName: debtType.iconName)
-                                //.resizable()
-                                .frame(width: 40, height: 40) // Increased size
-                                .padding(.trailing, 8) // Padding to create space between icon and text
-                                .foregroundColor(Color("MainColor")) // Change the color as needed
+                            //.resizable()
+                                .frame(width: 40, height: 40)
+                                .padding(.trailing, 8)
+                                .foregroundColor(Color("MainColor"))
                             
-                            VStack(alignment: .leading, spacing: 4) { // Slightly reduced spacing
+                            VStack(alignment: .leading, spacing: 4) {
                                 Text(debtType.title)
                                     .font(.headline)
                                     .foregroundColor(.primary)
@@ -597,7 +596,7 @@ struct DebtTypeSelectionView: View {
                             }
                             .padding(.vertical, 8)
                         }
-                        .padding(.horizontal) // Add some horizontal padding to the HStack
+                        .padding(.horizontal) 
                     }
                 }
             }
@@ -608,7 +607,7 @@ struct DebtTypeSelectionView: View {
                 leading: Button("Back") {
                     isPresented = false
                 }
-                .foregroundColor(.blue)
+                    .foregroundColor(.blue)
             )
         }
     }

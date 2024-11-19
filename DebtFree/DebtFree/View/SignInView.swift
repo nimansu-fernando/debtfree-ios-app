@@ -155,44 +155,44 @@ struct SignInView: View {
                     
                     if biometricManager.isFaceIDAvailable && useFaceID  {
                         // Sign In Button and Face ID Row
-                            HStack(spacing: 15) {
-                                // Sign In Button with Loading State
-                                Button(action: signInUser) {
-                                    ZStack {
-                                        Text("Sign In")
-                                            .foregroundColor(.white)
-                                            .opacity(isLoading ? 0 : 1)
-                                        
-                                        if isLoading {
-                                            ProgressView()
-                                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                        }
+                        HStack(spacing: 15) {
+                            // Sign In Button with Loading State
+                            Button(action: signInUser) {
+                                ZStack {
+                                    Text("Sign In")
+                                        .foregroundColor(.white)
+                                        .opacity(isLoading ? 0 : 1)
+                                    
+                                    if isLoading {
+                                        ProgressView()
+                                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
                                     }
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color("MainColor"))
-                                    .cornerRadius(25)
                                 }
-                                .disabled(isLoading || !isEmailValid || password.isEmpty)
-                                .opacity((isLoading || !isEmailValid || password.isEmpty) ? 0.6 : 1)
-                                
-                                // Face ID Button
-                                if biometricManager.isFaceIDAvailable && useFaceID {
-                                    Button(action: {
-                                        handleFaceIDLogin()
-                                    }) {
-                                        Image(systemName: "faceid")
-                                            .resizable()
-                                            .frame(width: 25, height: 25)
-                                            .foregroundColor(.black)
-                                            .padding(15)
-                                            .background(Color(UIColor.systemGray6))
-                                            .cornerRadius(10)
-                                    }
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color("MainColor"))
+                                .cornerRadius(25)
+                            }
+                            .disabled(isLoading || !isEmailValid || password.isEmpty)
+                            .opacity((isLoading || !isEmailValid || password.isEmpty) ? 0.6 : 1)
+                            
+                            // Face ID Button
+                            if biometricManager.isFaceIDAvailable && useFaceID {
+                                Button(action: {
+                                    handleFaceIDLogin()
+                                }) {
+                                    Image(systemName: "faceid")
+                                        .resizable()
+                                        .frame(width: 25, height: 25)
+                                        .foregroundColor(.black)
+                                        .padding(15)
+                                        .background(Color(UIColor.systemGray6))
+                                        .cornerRadius(10)
                                 }
                             }
-                            .padding(.horizontal, 30)
                         }
+                        .padding(.horizontal, 30)
+                    }
                     else {
                         // Sign In Button with Loading State
                         Button(action: signInUser) {
@@ -277,22 +277,22 @@ struct SignInView: View {
                     } else {
                         self.isLoading = false
                         self.showAlert(title: "Face ID Login",
-                                     message: "Please sign in with email and password first to enable Face ID login.")
+                                       message: "Please sign in with email and password first to enable Face ID login.")
                     }
                 } else {
                     self.isLoading = false
                     self.showAlert(title: "Authentication Failed",
-                                 message: self.biometricManager.errorMessage)
+                                   message: self.biometricManager.errorMessage)
                 }
             }
         }
     }
     
     private func signInUser() {
-//        guard isEmailValid else {
-//            showAlert(title: "Error", message: "Please enter a valid email address")
-//            return
-//        }
+        //        guard isEmailValid else {
+        //            showAlert(title: "Error", message: "Please enter a valid email address")
+        //            return
+        //        }
         
         guard !password.isEmpty else {
             showAlert(title: "Error", message: "Please enter your password")

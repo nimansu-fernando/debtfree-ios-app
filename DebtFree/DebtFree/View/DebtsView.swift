@@ -5,23 +5,17 @@
 //  Created by COBSCCOMPY4231P-006 on 2024-11-02.
 //
 
+import Foundation
 import SwiftUI
 import CoreData
 import FirebaseAuth
 import Charts
 
-struct DebtChartData: Identifiable {
-    let id = UUID()
-    let name: String
-    let amount: Double
-    var color: Color
-}
-
 struct BalanceChartView: View {
     let debts: FetchedResults<Debt>
-    let byCategory: Bool // true for category view, false for individual debts
+    let byCategory: Bool
     
-    // Computed property to get chart data based on the view type
+    // Get chart data based on the view type
     var chartData: [DebtChartData] {
         if byCategory {
             // Group debts by type and sum their balances
@@ -39,7 +33,7 @@ struct BalanceChartView: View {
                     amount: amount,
                     color: colorForCategory(category)
                 )
-            }.filter { $0.amount > 0 } // Only show categories with positive balance
+            }.filter { $0.amount > 0 }
         } else {
             // Individual debts
             return debts.map { debt in
@@ -70,18 +64,16 @@ struct BalanceChartView: View {
     
     var body: some View {
         if chartData.isEmpty {
-            // Show placeholder when no data
             Text("No debts found")
                 .foregroundColor(.gray)
                 .frame(height: 170)
         } else {
             HStack(spacing: 32) {
-                // Chart
                 Chart {
                     ForEach(chartData) { item in
                         SectorMark(
                             angle: .value("Amount", item.amount),
-                            innerRadius: .ratio(0.618), // Golden ratio for aesthetics
+                            innerRadius: .ratio(0.618),
                             angularInset: 1.0
                         )
                         .foregroundStyle(item.color)
@@ -123,7 +115,7 @@ struct BalanceChartView: View {
         }
     }
     
-    // Function to assign consistent colors to debt categories
+    // Assign consistent colors to debt categories
     func colorForCategory(_ category: String) -> Color {
         switch category {
         case "Credit Card":
@@ -137,7 +129,7 @@ struct BalanceChartView: View {
         case "Medical Debt":
             return .purple
         case "Family or Friend Loan":
-            return .pink
+            return .brown
         case "Personal Loan":
             return .cyan
         case "Business Loan":
@@ -157,10 +149,8 @@ struct DebtView: View {
     @State private var isShowingAddDebtView = false
     @State private var userID: String = ""
     
-    // Updated FetchRequest with a predicate for the current user
     @FetchRequest private var debts: FetchedResults<Debt>
     
-    // Initialize with dynamic FetchRequest based on userID
     init() {
         let request: NSFetchRequest<Debt> = Debt.fetchRequest()
         request.sortDescriptors = [NSSortDescriptor(keyPath: \Debt.debtName, ascending: true)]
@@ -183,7 +173,6 @@ struct DebtView: View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 0) {
-                    // Header section
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Debts")
                             .font(.title)
@@ -201,7 +190,6 @@ struct DebtView: View {
                             .padding(.horizontal)
                         
                         TabView(selection: $currentPage) {
-                            // Pass the full debts to charts regardless of search
                             BalanceChartView(debts: debts, byCategory: true)
                                 .tag(0)
                             BalanceChartView(debts: debts, byCategory: false)
@@ -210,7 +198,7 @@ struct DebtView: View {
                         .frame(height: 170)
                         .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
                         
-                        // Custom indicator circles
+                        //  Indicator circles
                         HStack {
                             ForEach(0..<2) { index in
                                 Circle()
@@ -228,7 +216,7 @@ struct DebtView: View {
                             .padding(.bottom, -12)
                     )
                     .padding(.top)
-
+                    
                     // Debts section
                     VStack(alignment: .leading, spacing: 16) {
                         HStack {
@@ -276,7 +264,6 @@ struct DebtView: View {
                             }
                         }
                         
-                        // Show "No results" message when search yields no results
                         if filteredDebts.isEmpty && !searchText.isEmpty {
                             VStack(spacing: 8) {
                                 Text("No matching debts found")
@@ -313,14 +300,6 @@ struct DebtView: View {
     private func updateFetchRequest() {
         debts.nsPredicate = NSPredicate(format: "userID == %@", userID)
     }
-}
-
-
-struct DebtCategory: Identifiable {
-    let id = UUID()
-    let name: String
-    let amount: Double
-    let color: Color
 }
 
 struct DebtList {
@@ -394,10 +373,10 @@ struct PieSlice: Shape {
         let radius = min(rect.width, rect.height) / 2
         path.move(to: center)
         path.addArc(center: center,
-                   radius: radius,
-                   startAngle: Angle(degrees: -90) + startAngle,
-                   endAngle: Angle(degrees: -90) + endAngle,
-                   clockwise: false)
+                    radius: radius,
+                    startAngle: Angle(degrees: -90) + startAngle,
+                    endAngle: Angle(degrees: -90) + endAngle,
+                    clockwise: false)
         path.closeSubpath()
         return path
     }
@@ -420,8 +399,6 @@ struct SearchBar: View {
 
 struct DebtCard: View {
     let debt: DebtList
-    
-    // Data for the donut chart
     private var chartData: [ProgressChartData] {
         [
             ProgressChartData(type: "Paid", value: debt.progress * 100),
@@ -455,7 +432,7 @@ struct DebtCard: View {
                         .fontWeight(.semibold)
                 }
                 
-                /// Debt Details
+                // Debt Details
                 VStack(alignment: .leading, spacing: 8) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Balance")
@@ -511,7 +488,6 @@ struct DebtCard: View {
     }
 }
 
-// Supporting struct for the progress chart data
 struct ProgressChartData {
     let type: String
     let value: Double

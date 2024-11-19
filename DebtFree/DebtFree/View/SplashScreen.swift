@@ -26,7 +26,6 @@ struct SplashScreen: View {
             .edgesIgnoringSafeArea(.all)
             
             VStack(spacing: 10) {
-                // Logo and Text combined image
                 Image("DebtFreeLogo2")
                     .resizable()
                     .scaledToFit()

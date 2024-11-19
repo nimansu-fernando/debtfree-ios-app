@@ -51,7 +51,7 @@ class BiometricManager: ObservableObject {
         }
         
         context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics,
-                             localizedReason: "Sign in with Face ID") { [weak self] success, error in
+                               localizedReason: "Sign in with Face ID") { [weak self] success, error in
             DispatchQueue.main.async {
                 if let error = error {
                     self?.handleAuthenticationError(error)

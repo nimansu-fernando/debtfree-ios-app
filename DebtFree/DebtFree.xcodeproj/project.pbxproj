@@ -9,8 +9,6 @@
 /* Begin PBXBuildFile section */
 		9A1A091D2CE31DB300C0B294 /* EventKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A1A091C2CE31DB300C0B294 /* EventKitManager.swift */; };
 		9A1C85762CD5FB4D0049953D /* ForgotPasswordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A1C85752CD5FB4D0049953D /* ForgotPasswordView.swift */; };
-		9A1C85782CD5FD850049953D /* EnterVerificationCodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A1C85772CD5FD850049953D /* EnterVerificationCodeView.swift */; };
-		9A1C857A2CD5FF740049953D /* ResetPasswordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A1C85792CD5FF740049953D /* ResetPasswordView.swift */; };
 		9A1C857C2CD6009E0049953D /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A1C857B2CD6009E0049953D /* HomeView.swift */; };
 		9A1C85802CD6099C0049953D /* DebtsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A1C857F2CD6099C0049953D /* DebtsView.swift */; };
 		9A1C85822CD609C70049953D /* AddDebtView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A1C85812CD609C70049953D /* AddDebtView.swift */; };
@@ -26,6 +24,16 @@
 		9A8821F42CDB27CF00E66870 /* SplashScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A8821F32CDB27CF00E66870 /* SplashScreen.swift */; };
 		9A8821F92CDB43AF00E66870 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 9A8821F82CDB43AF00E66870 /* FirebaseAuth */; };
 		9A9326132CE88CC800648FCB /* BiometricManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A9326122CE88CC800648FCB /* BiometricManager.swift */; };
+		9AB167842CECC166008693EB /* NotificationItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AB167832CECC166008693EB /* NotificationItem.swift */; };
+		9AB167872CECC571008693EB /* DebtChartData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AB167862CECC571008693EB /* DebtChartData.swift */; };
+		9AB167892CECC5D5008693EB /* DebtCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AB167882CECC5D5008693EB /* DebtCategory.swift */; };
+		9AB1678C2CECC7E7008693EB /* EditableField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AB1678B2CECC7E7008693EB /* EditableField.swift */; };
+		9AB1678E2CECC838008693EB /* PayoffPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AB1678D2CECC838008693EB /* PayoffPoint.swift */; };
+		9AB167902CECC867008693EB /* PaymentBreakdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AB1678F2CECC867008693EB /* PaymentBreakdown.swift */; };
+		9AB167922CECC893008693EB /* CostBreakdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AB167912CECC893008693EB /* CostBreakdown.swift */; };
+		9AB167942CECCB29008693EB /* ProgressData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AB167932CECCB29008693EB /* ProgressData.swift */; };
+		9AB167972CECCC8B008693EB /* BudgetViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AB167962CECCC8B008693EB /* BudgetViewModel.swift */; };
+		9AB167992CECCD4C008693EB /* PaymentSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AB167982CECCD4C008693EB /* PaymentSection.swift */; };
 		9ABB2F972CDC8ACF0000AC3C /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ABB2F962CDC8ACF0000AC3C /* MainTabView.swift */; };
 		9ABB2F992CDCD2770000AC3C /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ABB2F982CDCD2770000AC3C /* KeychainHelper.swift */; };
 		9ABB2FA32CDCE2F00000AC3C /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ABB2FA22CDCE2F00000AC3C /* ProfileView.swift */; };
@@ -63,8 +71,6 @@
 /* Begin PBXFileReference section */
 		9A1A091C2CE31DB300C0B294 /* EventKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventKitManager.swift; sourceTree = "<group>"; };
 		9A1C85752CD5FB4D0049953D /* ForgotPasswordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForgotPasswordView.swift; sourceTree = "<group>"; };
-		9A1C85772CD5FD850049953D /* EnterVerificationCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnterVerificationCodeView.swift; sourceTree = "<group>"; };
-		9A1C85792CD5FF740049953D /* ResetPasswordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResetPasswordView.swift; sourceTree = "<group>"; };
 		9A1C857B2CD6009E0049953D /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		9A1C857F2CD6099C0049953D /* DebtsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebtsView.swift; sourceTree = "<group>"; };
 		9A1C85812CD609C70049953D /* AddDebtView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddDebtView.swift; sourceTree = "<group>"; };
@@ -79,6 +85,16 @@
 		9A8821F32CDB27CF00E66870 /* SplashScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashScreen.swift; sourceTree = "<group>"; };
 		9A8821FA2CDB442200E66870 /* DebtFree.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DebtFree.entitlements; sourceTree = "<group>"; };
 		9A9326122CE88CC800648FCB /* BiometricManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricManager.swift; sourceTree = "<group>"; };
+		9AB167832CECC166008693EB /* NotificationItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationItem.swift; sourceTree = "<group>"; };
+		9AB167862CECC571008693EB /* DebtChartData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebtChartData.swift; sourceTree = "<group>"; };
+		9AB167882CECC5D5008693EB /* DebtCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebtCategory.swift; sourceTree = "<group>"; };
+		9AB1678B2CECC7E7008693EB /* EditableField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditableField.swift; sourceTree = "<group>"; };
+		9AB1678D2CECC838008693EB /* PayoffPoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PayoffPoint.swift; sourceTree = "<group>"; };
+		9AB1678F2CECC867008693EB /* PaymentBreakdown.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentBreakdown.swift; sourceTree = "<group>"; };
+		9AB167912CECC893008693EB /* CostBreakdown.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CostBreakdown.swift; sourceTree = "<group>"; };
+		9AB167932CECCB29008693EB /* ProgressData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressData.swift; sourceTree = "<group>"; };
+		9AB167962CECCC8B008693EB /* BudgetViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BudgetViewModel.swift; sourceTree = "<group>"; };
+		9AB167982CECCD4C008693EB /* PaymentSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentSection.swift; sourceTree = "<group>"; };
 		9ABB2F962CDC8ACF0000AC3C /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		9ABB2F982CDCD2770000AC3C /* KeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
 		9ABB2FA22CDCE2F00000AC3C /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
@@ -137,6 +153,68 @@
 			path = "Managers & Helpers";
 			sourceTree = "<group>";
 		};
+		9AB167812CECBDBA008693EB /* View */ = {
+			isa = PBXGroup;
+			children = (
+				9A8821F32CDB27CF00E66870 /* SplashScreen.swift */,
+				9AF2D81E2CCE191A00176584 /* OnboardingView.swift */,
+				9AF2D8202CCE229E00176584 /* WelcomeView.swift */,
+				9AF2D8242CCE231C00176584 /* SignUpView.swift */,
+				9AF2D8222CCE22FE00176584 /* SignInView.swift */,
+				9A1C85752CD5FB4D0049953D /* ForgotPasswordView.swift */,
+				9A1C857B2CD6009E0049953D /* HomeView.swift */,
+				9A2EA40E2CEB5B0E00E778E3 /* NotificationsView.swift */,
+				9ABB2FA22CDCE2F00000AC3C /* ProfileView.swift */,
+				9A1C857F2CD6099C0049953D /* DebtsView.swift */,
+				9A1C85812CD609C70049953D /* AddDebtView.swift */,
+				9A32913E2CDA09F600C3FFEF /* DebtDetailsView.swift */,
+				9A3291402CDA24E300C3FFEF /* PlanView.swift */,
+				9A3291422CDA2F3300C3FFEF /* BudgetView.swift */,
+				9A5B90412CDA41E90033F368 /* TrackingView.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		9AB167822CECC110008693EB /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				9AB167832CECC166008693EB /* NotificationItem.swift */,
+				9AB167852CECC543008693EB /* DebtsModel */,
+				9AB1678A2CECC74B008693EB /* DebtDetailsModel */,
+				9AB167932CECCB29008693EB /* ProgressData.swift */,
+				9AB167982CECCD4C008693EB /* PaymentSection.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		9AB167852CECC543008693EB /* DebtsModel */ = {
+			isa = PBXGroup;
+			children = (
+				9AB167862CECC571008693EB /* DebtChartData.swift */,
+				9AB167882CECC5D5008693EB /* DebtCategory.swift */,
+			);
+			path = DebtsModel;
+			sourceTree = "<group>";
+		};
+		9AB1678A2CECC74B008693EB /* DebtDetailsModel */ = {
+			isa = PBXGroup;
+			children = (
+				9AB1678B2CECC7E7008693EB /* EditableField.swift */,
+				9AB1678D2CECC838008693EB /* PayoffPoint.swift */,
+				9AB1678F2CECC867008693EB /* PaymentBreakdown.swift */,
+				9AB167912CECC893008693EB /* CostBreakdown.swift */,
+			);
+			path = DebtDetailsModel;
+			sourceTree = "<group>";
+		};
+		9AB167952CECCC65008693EB /* ViewModel */ = {
+			isa = PBXGroup;
+			children = (
+				9AB167962CECCC8B008693EB /* BudgetViewModel.swift */,
+			);
+			path = ViewModel;
+			sourceTree = "<group>";
+		};
 		9AF2D7E32CCE182800176584 = {
 			isa = PBXGroup;
 			children = (
@@ -162,31 +240,17 @@
 			children = (
 				9A827AD82CDB7E2D00645F0F /* Info.plist */,
 				9A827ADF2CDB7FD600645F0F /* GoogleService-Info.plist */,
-				9A827AE12CDB812000645F0F /* AppDelegate.swift */,
 				9A8821FA2CDB442200E66870 /* DebtFree.entitlements */,
-				9AF2D7EF2CCE182800176584 /* DebtFreeApp.swift */,
-				9AB167792CEC9192008693EB /* Managers & Helpers */,
-				9A8821F32CDB27CF00E66870 /* SplashScreen.swift */,
-				9AF2D81E2CCE191A00176584 /* OnboardingView.swift */,
-				9AF2D8202CCE229E00176584 /* WelcomeView.swift */,
-				9AF2D8242CCE231C00176584 /* SignUpView.swift */,
-				9AF2D8222CCE22FE00176584 /* SignInView.swift */,
-				9A1C85752CD5FB4D0049953D /* ForgotPasswordView.swift */,
-				9ABB2F962CDC8ACF0000AC3C /* MainTabView.swift */,
-				9A1C857B2CD6009E0049953D /* HomeView.swift */,
-				9A2EA40E2CEB5B0E00E778E3 /* NotificationsView.swift */,
-				9ABB2FA22CDCE2F00000AC3C /* ProfileView.swift */,
-				9A1C857F2CD6099C0049953D /* DebtsView.swift */,
-				9A1C85812CD609C70049953D /* AddDebtView.swift */,
-				9A32913E2CDA09F600C3FFEF /* DebtDetailsView.swift */,
-				9A3291402CDA24E300C3FFEF /* PlanView.swift */,
-				9A3291422CDA2F3300C3FFEF /* BudgetView.swift */,
-				9A5B90412CDA41E90033F368 /* TrackingView.swift */,
-				9A1C85772CD5FD850049953D /* EnterVerificationCodeView.swift */,
-				9A1C85792CD5FF740049953D /* ResetPasswordView.swift */,
-				9AF2D7F32CCE182900176584 /* Assets.xcassets */,
-				9AF2D7F82CCE182900176584 /* Persistence.swift */,
 				9AF2D7FA2CCE182900176584 /* DebtFree.xcdatamodeld */,
+				9AF2D7F82CCE182900176584 /* Persistence.swift */,
+				9A827AE12CDB812000645F0F /* AppDelegate.swift */,
+				9AF2D7EF2CCE182800176584 /* DebtFreeApp.swift */,
+				9ABB2F962CDC8ACF0000AC3C /* MainTabView.swift */,
+				9AB167792CEC9192008693EB /* Managers & Helpers */,
+				9AB167812CECBDBA008693EB /* View */,
+				9AB167822CECC110008693EB /* Model */,
+				9AB167952CECCC65008693EB /* ViewModel */,
+				9AF2D7F32CCE182900176584 /* Assets.xcassets */,
 				9AF2D7F52CCE182900176584 /* Preview Content */,
 			);
 			path = DebtFree;
@@ -358,29 +422,37 @@
 			buildActionMask = 2147483647;
 			files = (
 				9AF2D7F92CCE182900176584 /* Persistence.swift in Sources */,
+				9AB167872CECC571008693EB /* DebtChartData.swift in Sources */,
 				9AF2D8232CCE22FE00176584 /* SignInView.swift in Sources */,
 				9A32913F2CDA09F600C3FFEF /* DebtDetailsView.swift in Sources */,
+				9AB167922CECC893008693EB /* CostBreakdown.swift in Sources */,
 				9AF2D8212CCE229E00176584 /* WelcomeView.swift in Sources */,
-				9A1C85782CD5FD850049953D /* EnterVerificationCodeView.swift in Sources */,
 				9ABB2F992CDCD2770000AC3C /* KeychainHelper.swift in Sources */,
 				9A3291432CDA2F3300C3FFEF /* BudgetView.swift in Sources */,
 				9A9326132CE88CC800648FCB /* BiometricManager.swift in Sources */,
 				9A5B90422CDA41E90033F368 /* TrackingView.swift in Sources */,
 				9A827AE22CDB812000645F0F /* AppDelegate.swift in Sources */,
+				9AB1678C2CECC7E7008693EB /* EditableField.swift in Sources */,
+				9AB167942CECCB29008693EB /* ProgressData.swift in Sources */,
+				9AB167902CECC867008693EB /* PaymentBreakdown.swift in Sources */,
 				9AF2D8252CCE231C00176584 /* SignUpView.swift in Sources */,
+				9AB167992CECCD4C008693EB /* PaymentSection.swift in Sources */,
+				9AB1678E2CECC838008693EB /* PayoffPoint.swift in Sources */,
 				9AF2D7FC2CCE182900176584 /* DebtFree.xcdatamodeld in Sources */,
 				9A1C85822CD609C70049953D /* AddDebtView.swift in Sources */,
 				9A1A091D2CE31DB300C0B294 /* EventKitManager.swift in Sources */,
-				9A1C857A2CD5FF740049953D /* ResetPasswordView.swift in Sources */,
 				9A1C85802CD6099C0049953D /* DebtsView.swift in Sources */,
 				9A8821F42CDB27CF00E66870 /* SplashScreen.swift in Sources */,
+				9AB167842CECC166008693EB /* NotificationItem.swift in Sources */,
 				9AF2D81F2CCE191A00176584 /* OnboardingView.swift in Sources */,
+				9AB167972CECCC8B008693EB /* BudgetViewModel.swift in Sources */,
 				9ABB2FA32CDCE2F00000AC3C /* ProfileView.swift in Sources */,
 				9ABB2F972CDC8ACF0000AC3C /* MainTabView.swift in Sources */,
 				9A1C857C2CD6009E0049953D /* HomeView.swift in Sources */,
 				9A1C85762CD5FB4D0049953D /* ForgotPasswordView.swift in Sources */,
 				9A2EA40F2CEB5B0E00E778E3 /* NotificationsView.swift in Sources */,
 				9AF2D7F02CCE182800176584 /* DebtFreeApp.swift in Sources */,
+				9AB167892CECC5D5008693EB /* DebtCategory.swift in Sources */,
 				9A3291412CDA24E300C3FFEF /* PlanView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

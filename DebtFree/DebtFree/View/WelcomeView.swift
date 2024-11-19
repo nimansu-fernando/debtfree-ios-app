@@ -67,7 +67,7 @@ struct WelcomeView: View {
                         Text("By continuing, you agree to our")
                             .font(.footnote)
                             .multilineTextAlignment(.center)
-
+                        
                         HStack(spacing: 6) {
                             Text("Privacy Policy")
                                 .foregroundColor(Color("SubColor"))

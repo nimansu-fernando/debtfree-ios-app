@@ -13,21 +13,19 @@ struct ForgotPasswordView: View {
     @State private var errorMessage: String? = nil
     @State private var showAlert: Bool = false
     @State private var alertMessage: String = ""
-    @State private var alertTitle: String = "" // Changed to alertTitle instead of isSuccess
+    @State private var alertTitle: String = ""
     
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode> // To go back to SignInView
-
+    
     var body: some View {
         NavigationView {
             VStack(spacing: 20) {
-                // Title for Forgot Password
                 Text("Forgot Password")
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(.black)
                     .padding(.top, 20)
-
-                // Forgot Password Image
+                
                 Image("forgot-password1")
                     .resizable()
                     .scaledToFit()
@@ -38,15 +36,13 @@ struct ForgotPasswordView: View {
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
                 
-                // Email TextField
                 TextField("Email", text: $email)
                     .padding()
                     .background(RoundedRectangle(cornerRadius: 25).stroke(Color("MainColor"), lineWidth: 1))
                     .textContentType(.emailAddress)
                     .keyboardType(.emailAddress)
                     .padding(.horizontal, 30)
-
-                // Show error or success message
+                
                 if let errorMessage = errorMessage {
                     Text(errorMessage)
                         .foregroundColor(.red)
@@ -63,26 +59,26 @@ struct ForgotPasswordView: View {
                         .cornerRadius(25)
                 }
                 .padding(.horizontal, 30)
-
+                
                 Spacer()
             }
             .navigationBarHidden(true)
             .navigationBarBackButtonHidden(true)
-
+            
             .alert(isPresented: $showAlert) {
                 Alert(
-                    title: Text(alertTitle), // Using alertTitle here
+                    title: Text(alertTitle),
                     message: Text(alertMessage),
                     dismissButton: .default(Text("OK"), action: {
                         if alertTitle == "Password Reset Complete" {
-                            presentationMode.wrappedValue.dismiss() // Navigate back to SignInView
+                            presentationMode.wrappedValue.dismiss()
                         }
                     })
                 )
             }
         }
     }
-
+    
     // Password Reset Function
     private func handlePasswordReset() {
         guard !email.isEmpty else {
@@ -99,12 +95,12 @@ struct ForgotPasswordView: View {
             showError("If this email is associated with an account, you will receive a password reset link shortly.", isSuccess: true)
         }
     }
-
+    
     // Show error or success message
     private func showError(_ message: String, isSuccess: Bool = false) {
         alertMessage = message
         alertTitle = isSuccess ? "Password Reset Complete" : "Error"
-        showAlert = true // Show the alert
+        showAlert = true 
     }
 }
 

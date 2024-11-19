@@ -5,49 +5,10 @@
 //  Created by COBSCCOMPY4231P-006 on 2024-11-18.
 //
 
+import Foundation
 import SwiftUI
 import CoreData
 import FirebaseAuth
-
-struct NotificationItem: Identifiable {
-    let id = UUID()
-    let type: NotificationType
-    let title: String
-    let message: String
-    let date: Date
-    let relatedDebtID: UUID?
-    
-    enum NotificationType {
-        case paymentDue
-        case paymentOverdue
-        case paymentSuccess
-        case highInterest
-        case milestone
-        case general
-        
-        var icon: String {
-            switch self {
-            case .paymentDue: return "calendar.badge.exclamationmark"
-            case .paymentOverdue: return "exclamationmark.circle.fill"
-            case .paymentSuccess: return "checkmark.circle.fill"
-            case .highInterest: return "chart.line.uptrend.xyaxis"
-            case .milestone: return "star.fill"
-            case .general: return "bell.fill"
-            }
-        }
-        
-        var color: Color {
-            switch self {
-            case .paymentDue: return .orange
-            case .paymentOverdue: return .red
-            case .paymentSuccess: return .green
-            case .highInterest: return .blue
-            case .milestone: return .purple
-            case .general: return Color("MainColor")
-            }
-        }
-    }
-}
 
 struct NotificationCenterView: View {
     @Environment(\.managedObjectContext) private var viewContext
@@ -71,7 +32,7 @@ struct NotificationCenterView: View {
     var filteredNotifications: [NotificationItem] {
         let userID = Auth.auth().currentUser?.uid ?? ""
         
-        // First filter based on user-specific notification preferences
+        // First filter based on user specific notification preferences
         let notificationsBasedOnPreferences = notifications.filter { notification in
             switch notification.type {
             case .paymentDue:
@@ -226,7 +187,7 @@ struct NotificationCard: View {
                     Text(notification.message)
                         .font(.subheadline)
                         .foregroundColor(.gray)
-                        //.lineLimit(2)
+                    //.lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 

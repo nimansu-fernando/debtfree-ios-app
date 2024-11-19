@@ -8,7 +8,6 @@
 import SwiftUI
 import EventKit
 
-// EventKit permission handler
 class EventKitManager {
     static let shared = EventKitManager()
     private let eventStore = EKEventStore()

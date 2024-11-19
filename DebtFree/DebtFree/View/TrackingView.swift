@@ -5,15 +5,10 @@
 //  Created by COBSCCOMPY4231P-006 on 2024-11-05.
 //
 
+import Foundation
 import SwiftUI
 import CoreData
 import FirebaseAuth
-
-struct PaymentSection: Identifiable {
-    let id = UUID()
-    let title: String
-    let items: [Payment]
-}
 
 struct TrackingView: View {
     @Environment(\.managedObjectContext) private var viewContext
@@ -142,7 +137,6 @@ struct TrackingView: View {
                 .padding(.bottom, 20)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 
-                // Content
                 if isUpcomingSelected {
                     UpcomingPaymentsView(sections: upcomingSections)
                 } else {
@@ -178,7 +172,6 @@ struct UpcomingPaymentsView: View {
     var body: some View {
         ScrollView {
             if hasNoData {
-                // Empty state message
                 VStack {
                     Image(systemName: "calendar.badge.exclamationmark")
                         .font(.system(size: 50))
@@ -219,7 +212,7 @@ struct CompletedPaymentsView: View {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "MMMM yyyy"
         
-        // First, group payments by date string but keep track of the first date in each group
+        // Group payments by date string but keep track of the first date in each group
         var groupedWithDates: [(date: Date, key: String, payments: [Payment])] = []
         var tempGroups: [String: (date: Date, payments: [Payment])] = [:]
         
@@ -248,7 +241,6 @@ struct CompletedPaymentsView: View {
     var body: some View {
         ScrollView {
             if payments.isEmpty {
-                // Empty state message
                 VStack {
                     Image(systemName: "checkmark.circle")
                         .font(.system(size: 50))
@@ -338,7 +330,6 @@ struct PaymentDetailsSheet: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                // Payment Details Header
                 VStack(alignment: .center, spacing: 8) {
                     Text(debt?.debtName ?? "Payment Details")
                         .font(.title2)
@@ -461,7 +452,6 @@ struct PaymentDetailsSheet: View {
             .navigationBarItems(trailing: Button("Done") {
                 dismiss()
             })
-            // Confirmation Alert
             .alert("Confirm Payment", isPresented: $showingConfirmation) {
                 Button("Cancel", role: .cancel) { }
                 Button("Confirm", role: .destructive) {
@@ -470,7 +460,6 @@ struct PaymentDetailsSheet: View {
             } message: {
                 Text("Are you sure you want to mark this payment as complete? This action cannot be undone.")
             }
-            // Result Alert
             .alert("Payment Update", isPresented: $showingAlert) {
                 Button("OK") {
                     if payment.status == "completed" {
@@ -506,7 +495,6 @@ struct PaymentDetailsSheet: View {
     }
     
     private func markAsComplete() {
-        // Validation
         guard let debt = debt else {
             alertMessage = "Error: Could not find associated debt"
             showingAlert = true
@@ -546,7 +534,7 @@ struct PaymentItemView: View {
     @State private var debt: Debt?
     @State private var showingPaymentSheet = false
     
-    // Computed properties for interest calculations
+    // Interest calculations
     private var monthlyInterestRate: Double {
         guard let debt = debt else { return 0.0 }
         return (debt.apr / 12.0) / 100.0
@@ -566,9 +554,7 @@ struct PaymentItemView: View {
             showingPaymentSheet = true
         }) {
             VStack(alignment: .leading, spacing: 12) {
-                // Status Icon and Payment Information
                 HStack(alignment: .top, spacing: 16) {
-                    // Clock/Checkmark icon
                     Image(systemName: payment.status == "completed" ? "checkmark.circle.fill" : "clock")
                         .font(.system(size: 24))
                         .foregroundColor(payment.status == "completed" ? .green : .blue)
@@ -578,7 +564,6 @@ struct PaymentItemView: View {
                     
                     // Payment Details
                     VStack(spacing: 8) {
-                        // First Row: Debt Name and Amount
                         HStack {
                             Text(debt?.debtName ?? "Unknown")
                                 .foregroundColor(.black)

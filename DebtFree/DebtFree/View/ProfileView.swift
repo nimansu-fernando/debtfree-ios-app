@@ -22,7 +22,7 @@ extension UserDefaults {
             [.paymentDue, .paymentOverdue, .paymentSuccess, .highInterest, .milestone, .general]
         }
         
-        // Get user-specific key
+        // Get user specific key
         func keyForUser(_ userID: String) -> String {
             return "\(userID)_\(self.rawValue)"
         }
@@ -57,7 +57,6 @@ struct ProfileView: View {
     @StateObject private var biometricManager = BiometricManager()
     @AppStorage ("use_faceid") private var useFaceID = false
     
-    // Function to get username from email
     private func getUsernameFromEmail(_ email: String) -> String {
         if let atIndex = email.firstIndex(of: "@") {
             return String(email[..<atIndex])
@@ -65,7 +64,6 @@ struct ProfileView: View {
         return email
     }
     
-    // Function to load user data
     private func loadUserData() {
         if let user = Auth.auth().currentUser {
             userEmail = user.email ?? ""
@@ -247,7 +245,6 @@ struct NotificationsSettingsView: View {
     }
     
     init() {
-        // Get current user ID
         self._userID = State(initialValue: Auth.auth().currentUser?.uid ?? "")
     }
     
@@ -258,18 +255,18 @@ struct NotificationsSettingsView: View {
             description: "Get notified when payments are approaching due date",
             defaultKey: .paymentDue
         ),
-//        NotificationSettingItem(
-//            type: .paymentOverdue,
-//            title: "Overdue Payments",
-//            description: "Get notified when payments are overdue",
-//            defaultKey: .paymentOverdue
-//        ),
-//        NotificationSettingItem(
-//            type: .paymentSuccess,
-//            title: "Payment Success",
-//            description: "Get notified when payments are successfully processed",
-//            defaultKey: .paymentSuccess
-//        ),
+        //        NotificationSettingItem(
+        //            type: .paymentOverdue,
+        //            title: "Overdue Payments",
+        //            description: "Get notified when payments are overdue",
+        //            defaultKey: .paymentOverdue
+        //        ),
+        //        NotificationSettingItem(
+        //            type: .paymentSuccess,
+        //            title: "Payment Success",
+        //            description: "Get notified when payments are successfully processed",
+        //            defaultKey: .paymentSuccess
+        //        ),
         NotificationSettingItem(
             type: .highInterest,
             title: "High Interest Alerts",
