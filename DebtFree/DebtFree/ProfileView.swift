@@ -175,7 +175,7 @@ struct ProfileView: View {
                 loadUserData()
             }
         }
-        //.toolbar(.hidden, for: .tabBar)
+        .toolbar(.hidden, for: .tabBar)
     }
     
     func logOut() {

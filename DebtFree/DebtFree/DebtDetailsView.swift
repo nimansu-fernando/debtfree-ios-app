@@ -148,6 +148,7 @@ struct DebtDetailsView: View {
         } message: {
             Text(alertMessage)
         }
+        //.toolbar(.hidden, for: .tabBar)
     }
 }
 
@@ -717,8 +718,6 @@ struct TransactionsView: View {
     }
 }
 
-// Separate view for payment rows to keep the code organized
-// Separate view for payment rows to keep the code organized
 struct PaymentRowView: View {
     let payment: Payment
     var isPast: Bool = false

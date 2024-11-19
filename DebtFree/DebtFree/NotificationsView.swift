@@ -138,6 +138,7 @@ struct NotificationCenterView: View {
         .onAppear {
             generateNotifications()
         }
+        .toolbar(.hidden, for: .tabBar)
     }
     
     private func generateNotifications() {
