@@ -48,10 +48,26 @@ struct PlanView: View {
     }
     
     private func calculatePlanSummary() {
-        let activeDebts = debts.filter { $0.currentBalance - $0.paidAmount > 0 }
-        let settledDebts = debts.filter { $0.currentBalance - $0.paidAmount <= 0 }
+        // First get all debts with completed payments
+        let completedDebtIDs = debts.compactMap { debt -> UUID? in
+            let fetchRequest: NSFetchRequest<Payment> = Payment.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "debtID == %@", debt.debtID! as CVarArg)
+            
+            do {
+                let payments = try viewContext.fetch(fetchRequest)
+                // A debt is settled if it has payments and all are completed
+                return (!payments.isEmpty && payments.allSatisfy { $0.status == "completed" }) ? debt.debtID : nil
+            } catch {
+                print("Error fetching payments: \(error)")
+                return nil
+            }
+        }
         
-        // Find current focus debt (smallest balance) and next snowball target
+        // Filter debts based on completed payments
+        let settledDebts = debts.filter { completedDebtIDs.contains($0.debtID!) }
+        let activeDebts = debts.filter { !completedDebtIDs.contains($0.debtID!) }
+        
+        // Sort active debts by remaining balance
         let sortedActiveDebts = activeDebts.sorted {
             ($0.currentBalance - $0.paidAmount) < ($1.currentBalance - $1.paidAmount)
         }
@@ -160,6 +176,45 @@ struct PlanView: View {
         }
         
         return "0 Days"
+    }
+    
+    private func getLastPayment(for debt: Debt) -> Payment? {
+        let fetchRequest: NSFetchRequest<Payment> = Payment.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "debtID == %@ AND status == %@",
+                                           debt.debtID! as CVarArg,
+                                           "completed")
+        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \Payment.paidDate,
+                                                        ascending: false)]
+        fetchRequest.fetchLimit = 1
+        
+        do {
+            let payments = try viewContext.fetch(fetchRequest)
+            return payments.first
+        } catch {
+            print("Error fetching last payment: \(error)")
+            return nil
+        }
+    }
+
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        return formatter.string(from: date)
+    }
+    
+    private func getTotalAmountPaid(for debt: Debt) -> Double {
+        let fetchRequest: NSFetchRequest<Payment> = Payment.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "debtID == %@ AND status == %@",
+                                           debt.debtID! as CVarArg,
+                                           "completed")
+        
+        do {
+            let payments = try viewContext.fetch(fetchRequest)
+            return payments.reduce(0.0) { $0 + $1.amountPaid }
+        } catch {
+            print("Error fetching payments: \(error)")
+            return 0.0
+        }
     }
     
     var body: some View {
@@ -271,6 +326,25 @@ struct PlanView: View {
                                 .buttonStyle(PlainButtonStyle())
                             }
                         }
+                        
+                        // Settled Debts Section
+                        if !summary.settledDebts.isEmpty {
+                            VStack(alignment: .leading, spacing: 16) {
+                                Text("Settled Debts")
+                                    .font(.headline)
+                                    .padding(.horizontal)
+                                
+                                ForEach(summary.settledDebts) { debt in
+                                    let lastPayment = getLastPayment(for: debt)
+                                    let totalPaid = getTotalAmountPaid(for: debt)
+                                    SettledDebtCard(
+                                        name: debt.debtName ?? "Unknown",
+                                        amount: totalPaid, // Changed from debt.currentBalance to totalPaid
+                                        date: formatDate(lastPayment?.paidDate ?? Date())
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
                 .padding(.bottom, 80)
@@ -297,6 +371,7 @@ struct PlanView: View {
         debts.nsPredicate = NSPredicate(format: "userID == %@", userID)
     }
 }
+    
 
 struct SummaryCard: View {
     let icon: String
@@ -436,16 +511,22 @@ struct SettledDebtCard: View {
     
     var body: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(name)
-                    .font(.headline)
-                Text("LKR \(String(format: "%.2f", amount))")
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 8) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                    Text(name)
+                        .font(.headline)
+                }
+                
+                Text("Total Paid: LKR \(String(format: "%.2f", amount))")
+                    .font(.subheadline)
                     .foregroundColor(.gray)
             }
             
             Spacer()
             
-            VStack(alignment: .trailing, spacing: 4) {
+            VStack(alignment: .trailing, spacing: 8) {
                 Text("SETTLED")
                     .font(.caption)
                     .fontWeight(.semibold)
@@ -455,6 +536,9 @@ struct SettledDebtCard: View {
                     .background(Color.green)
                     .cornerRadius(4)
                 
+                Text("Completed on")
+                    .font(.caption)
+                    .foregroundColor(.gray)
                 Text(date)
                     .font(.subheadline)
                     .foregroundColor(.gray)
@@ -462,7 +546,12 @@ struct SettledDebtCard: View {
         }
         .padding()
         .background(Color.white)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.green.opacity(0.3), lineWidth: 2)
+        )
         .cornerRadius(12)
+        .padding(.horizontal)
     }
 }
 

@@ -262,6 +262,7 @@ struct DebtView: View {
                         // Filtered Debt cards
                         ForEach(filteredDebts, id: \.self) { debt in
                             NavigationLink(destination: DebtDetailsView(debt: debt)
+                                .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
                                 .navigationTitle(debt.debtName ?? "Debt Details")
                             ) {
                                 DebtCard(debt: DebtList(
