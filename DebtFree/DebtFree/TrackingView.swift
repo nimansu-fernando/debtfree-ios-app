@@ -20,26 +20,25 @@ struct TrackingView: View {
     @State private var isUpcomingSelected = true
     @State private var userID: String = ""
     
-    // Fetch requests for payments
     @FetchRequest private var upcomingPayments: FetchedResults<Payment>
     @FetchRequest private var completedPayments: FetchedResults<Payment>
     
     // Initialize with dynamic FetchRequest based on userID
     init() {
-        // Initial fetch request for upcoming payments
+        // fetch request for upcoming payments
         let upcomingRequest: NSFetchRequest<Payment> = Payment.fetchRequest()
         upcomingRequest.sortDescriptors = [NSSortDescriptor(keyPath: \Payment.paymentDueDate, ascending: true)]
         upcomingRequest.predicate = NSPredicate(format: "userID == %@ AND status == %@", "", "upcoming")
         _upcomingPayments = FetchRequest(fetchRequest: upcomingRequest)
         
-        // Initial fetch request for completed payments
+        // fetch request for completed payments
         let completedRequest: NSFetchRequest<Payment> = Payment.fetchRequest()
         completedRequest.sortDescriptors = [NSSortDescriptor(keyPath: \Payment.paymentDueDate, ascending: false)]
         completedRequest.predicate = NSPredicate(format: "userID == %@ AND status == %@", "", "completed")
         _completedPayments = FetchRequest(fetchRequest: completedRequest)
     }
     
-    // Computed properties for organizing payments into sections
+    // properties for organizing payments into sections
     private var currentMonthPayments: [Payment] {
         let currentDate = Date()
         let calendar = Calendar.current
@@ -99,7 +98,6 @@ struct TrackingView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                // Custom Navigation Bar
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Tracking")
                         .font(.title)
@@ -173,16 +171,43 @@ struct TrackingView: View {
 struct UpcomingPaymentsView: View {
     let sections: [PaymentSection]
     
+    private var hasNoData: Bool {
+        sections.allSatisfy { $0.items.isEmpty }
+    }
+    
     var body: some View {
         ScrollView {
-            VStack(spacing: 24) {
-                ForEach(sections) { section in
-                    if !section.items.isEmpty {
-                        MonthSection(title: section.title, items: section.items)
+            if hasNoData {
+                // Empty state message
+                VStack {
+                    Image(systemName: "calendar.badge.exclamationmark")
+                        .font(.system(size: 50))
+                        .foregroundColor(.gray)
+                        .padding(.bottom, 8)
+                    
+                    Text("No Upcoming Payments")
+                        .font(.title3)
+                        .fontWeight(.medium)
+                        .foregroundColor(.gray)
+                    
+                    Text("When you add debts, your upcoming payments will appear here")
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding()
+            } else {
+                VStack(spacing: 24) {
+                    ForEach(sections) { section in
+                        if !section.items.isEmpty {
+                            MonthSection(title: section.title, items: section.items)
+                        }
                     }
                 }
+                .padding()
             }
-            .padding()
         }
     }
 }
@@ -222,12 +247,35 @@ struct CompletedPaymentsView: View {
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 24) {
-                ForEach(paymentsByMonth, id: \.0) { month, monthPayments in
-                    MonthSection(title: month, items: monthPayments)
+            if payments.isEmpty {
+                // Empty state message
+                VStack {
+                    Image(systemName: "checkmark.circle")
+                        .font(.system(size: 50))
+                        .foregroundColor(.gray)
+                        .padding(.bottom, 8)
+                    
+                    Text("No Completed Payments")
+                        .font(.title3)
+                        .fontWeight(.medium)
+                        .foregroundColor(.gray)
+                    
+                    Text("Your payment history will appear here once you complete payments")
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding()
+            } else {
+                VStack(spacing: 24) {
+                    ForEach(paymentsByMonth, id: \.0) { month, monthPayments in
+                        MonthSection(title: month, items: monthPayments)
+                    }
+                }
+                .padding()
             }
-            .padding()
         }
     }
 }
@@ -265,7 +313,7 @@ struct PaymentDetailsSheet: View {
     @State private var paymentText: String
     @State private var debt: Debt?
     @State private var showingAlert = false
-    @State private var showingConfirmation = false  // New state for confirmation alert
+    @State private var showingConfirmation = false
     @State private var alertMessage = ""
     
     init(payment: Payment) {
@@ -397,7 +445,7 @@ struct PaymentDetailsSheet: View {
                 // Mark as Complete Button - Only show for upcoming payments
                 if payment.status != "completed" {
                     Button(action: {
-                        showingConfirmation = true  // Show confirmation alert instead of direct action
+                        showingConfirmation = true
                     }) {
                         Text("Mark as Complete")
                             .fontWeight(.medium)
@@ -563,7 +611,6 @@ struct PaymentItemView: View {
                         }
                     }
                     
-                    // Chevron right
                     Image(systemName: "chevron.right")
                         .foregroundColor(.gray)
                         .font(.system(size: 14))
@@ -627,7 +674,6 @@ struct PaymentItemView: View {
     }
 }
 
-// Helper extension for date calculations
 extension Calendar {
     func startOfMonth(for date: Date) -> Date {
         let components = dateComponents([.year, .month], from: date)

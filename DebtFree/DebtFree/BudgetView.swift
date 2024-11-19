@@ -115,9 +115,7 @@ struct BudgetView: View {
     @StateObject private var viewModel: BudgetViewModel
     
     init() {
-        // Get current user ID from Firebase Auth
         let userID = Auth.auth().currentUser?.uid ?? ""
-        // Initialize viewModel with managedObjectContext and userID
         _viewModel = StateObject(wrappedValue: BudgetViewModel(
             context: PersistenceController.shared.container.viewContext,
             userID: userID
@@ -127,7 +125,6 @@ struct BudgetView: View {
     var body: some View {
         ScrollView(.vertical, showsIndicators: true) {
             VStack(spacing: 20) {
-                // Header
                 VStack(alignment: .leading, spacing: 0) {
                     Text("Budget")
                         .font(.title)
@@ -219,13 +216,13 @@ struct BudgetView: View {
                     categories: viewModel.expenses,
                     type: .expenses
                 )
-                Spacer()
+                //Spacer()
                     //.frame(height: 100) // Increased padding to account for tab bar height + safe area
             }
         }
         .background(Color(.systemGray6))
         .safeAreaInset(edge: .bottom) {
-            Color.clear.frame(height: 80)
+            Color.clear.frame(height: 5)
         }
         .alert("Budget Alert", isPresented: $viewModel.showingAlert) {
             Button("OK", role: .cancel) {}
@@ -309,7 +306,7 @@ struct BudgetView: View {
                     Image(systemName: "plus.circle.fill")
                     Text("Add \(title)")
                 }
-                .foregroundColor(.blue)
+                .foregroundColor(Color("MainColor"))
             }
         }
         .padding()
@@ -337,9 +334,9 @@ struct CategoryItemView: View {
     var body: some View {
         HStack {
             Image(systemName: category.value(forKey: "icon") as? String ?? "dollarsign.circle.fill")
-                .foregroundColor(.blue)
+                .foregroundColor(Color("MainColor"))
                 .frame(width: 32, height: 32)
-                .background(Color.blue.opacity(0.1))
+                .background(Color("MainColor").opacity(0.1))
                 .clipShape(Circle())
             
             Text(category.value(forKey: "name") as? String ?? "")
@@ -349,7 +346,7 @@ struct CategoryItemView: View {
             
             HStack {
                 Text("LKR")
-                    .foregroundColor(.blue)
+                    .foregroundColor(Color("MainColor"))
                 TextField("0.00", text: $amount)
                     .multilineTextAlignment(.trailing)
                     .keyboardType(.decimalPad)
@@ -361,7 +358,7 @@ struct CategoryItemView: View {
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
-            .background(Color.blue.opacity(0.1))
+            .background(Color("MainColor").opacity(0.1))
             .cornerRadius(8)
             
             Button {

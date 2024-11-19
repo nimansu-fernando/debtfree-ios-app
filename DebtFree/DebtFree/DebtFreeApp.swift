@@ -26,7 +26,7 @@ struct DebtFreeApp: App {
             _isSignedIn = State(initialValue: true)
         }
         
-        // Check if it's first launch
+        // Check if its first launch
         let hasLaunchedBefore = UserDefaults.standard.bool(forKey: "hasLaunchedBefore")
         _isFirstLaunch = State(initialValue: !hasLaunchedBefore)
         
