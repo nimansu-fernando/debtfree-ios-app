@@ -137,6 +137,7 @@ struct HomeView: View {
                     HStack {
                         NavigationLink(destination:
                                         NotificationCenterView()
+                                            .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
                                             .navigationTitle("Notifications")
                         ) {
                             Image(systemName: "bell")

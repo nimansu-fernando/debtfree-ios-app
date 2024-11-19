@@ -205,7 +205,8 @@ struct NotificationCard: View {
                     Text(notification.message)
                         .font(.subheadline)
                         .foregroundColor(.gray)
-                        .lineLimit(2)
+                        //.lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 
                 Spacer()
