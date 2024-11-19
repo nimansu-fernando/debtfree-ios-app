@@ -28,13 +28,12 @@ extension UserDefaults {
         }
     }
     
-    // Helper methods for user-specific notification settings
+    // Helper methods for user specific notification settings
     func setNotificationSetting(_ value: Bool, for key: NotificationKeys, userID: String) {
         set(value, forKey: key.keyForUser(userID))
     }
     
     func getNotificationSetting(for key: NotificationKeys, userID: String) -> Bool {
-        // Default to true if setting hasn't been explicitly set
         return bool(forKey: key.keyForUser(userID))
     }
 }
@@ -134,6 +133,13 @@ struct ProfileView: View {
                                     useFaceID = false
                                 }
                             }
+                        } else {
+                            // Handle Face ID disabling
+                            KeychainHelper.shared.delete(forKey: "userCredentials")
+                            KeychainHelper.shared.delete(forKey: "lastLoggedInUser")
+                            KeychainHelper.shared.delete(forKey: "uid")
+                            UserDefaults.standard.removeObject(forKey: "use_faceid")
+                            UserDefaults.standard.removeObject(forKey: "FaceIDEnabled")
                         }
                     }
                     .padding(.horizontal, 16)
@@ -173,10 +179,19 @@ struct ProfileView: View {
     
     func logOut() {
         do {
+            if let user = Auth.auth().currentUser,
+               let credentials = KeychainHelper.shared.getCredentials() {
+                // Save current user's credentials before signing out
+                KeychainHelper.shared.saveLastLoggedInUser(
+                    email: credentials.email,
+                    password: credentials.password
+                )
+            }
+            
             try Auth.auth().signOut()
             KeychainHelper.shared.delete(forKey: "uid")
             UserDefaults.standard.removeObject(forKey: "FaceIDEnabled")
-            // Note: We're not clearing lastLoggedInUser credentials
+            // saving lastLoggedInUser credentials before logout
             self.isLoggedOut = true
         } catch let signOutError as NSError {
             alertMessage = "Error signing out: \(signOutError.localizedDescription)"
@@ -188,7 +203,6 @@ struct ProfileView: View {
 struct NotificationsSettingsView: View {
     @State private var userID: String
     
-    // Using computed properties to handle user-specific settings
     private var isPaymentDueEnabled: Binding<Bool> {
         Binding(
             get: { UserDefaults.standard.getNotificationSetting(for: .paymentDue, userID: userID) },
@@ -294,7 +308,6 @@ struct NotificationsSettingsView: View {
     }
 }
 
-// Simple row component for notification settings
 struct NotificationSettingRow: View {
     let title: String
     let description: String
