@@ -32,7 +32,7 @@ struct NotificationCenterView: View {
     var filteredNotifications: [NotificationItem] {
         let userID = Auth.auth().currentUser?.uid ?? ""
         
-        // First filter based on user specific notification preferences
+        // filter based on user specific notification preferences
         let notificationsBasedOnPreferences = notifications.filter { notification in
             switch notification.type {
             case .paymentDue:
@@ -50,7 +50,7 @@ struct NotificationCenterView: View {
             }
         }
         
-        // Then filter based on selected category
+        // filter based on selected category
         switch selectedFilter {
         case .all:
             return notificationsBasedOnPreferences
@@ -63,7 +63,6 @@ struct NotificationCenterView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Filter Tabs
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
                     ForEach(NotificationFilter.allCases, id: \.self) { filter in
@@ -79,7 +78,6 @@ struct NotificationCenterView: View {
             .padding(.vertical, 8)
             .background(Color.white)
             
-            // Notifications List
             if filteredNotifications.isEmpty {
                 EmptyNotificationView(filter: selectedFilter)
             } else {
@@ -104,41 +102,48 @@ struct NotificationCenterView: View {
     
     private func generateNotifications() {
         var newNotifications: [NotificationItem] = []
+        let userID = Auth.auth().currentUser?.uid ?? ""
         
-        // Process each debt for notifications
         for debt in debts {
             // Payment Due Notifications
             if let nextPaymentDate = debt.nextPaymentDate {
-                newNotifications.append(NotificationItem(
+                let notification = NotificationItem(
                     type: .paymentDue,
                     title: "Payment Due Soon",
                     message: "Payment of LKR \(String(format: "%.2f", debt.minimumPayment)) for \(debt.debtName ?? "your debt") is due on \(formatDate(nextPaymentDate)).",
                     date: Date(),
                     relatedDebtID: debt.debtID
-                ))
+                )
+                newNotifications.append(notification)
             }
             
             // High Interest Alert
             if debt.apr > 20 {
-                newNotifications.append(NotificationItem(
+                let notification = NotificationItem(
                     type: .highInterest,
                     title: "High Interest Alert",
                     message: "\(debt.debtName ?? "Your debt") has a high APR of \(String(format: "%.1f", debt.apr))%. Consider prioritizing this payment or looking for refinancing options.",
                     date: Date(),
                     relatedDebtID: debt.debtID
-                ))
+                )
+                newNotifications.append(notification)
             }
             
             // Progress Milestones
             let progress = debt.paidAmount / debt.currentBalance
-            if progress >= 0.5 && progress < 0.51 {  // 50% milestone
-                newNotifications.append(NotificationItem(
+            let milestones = [0.25, 0.50, 0.75, 1.0]
+            
+            // Find the highest milestone achieved
+            if let achievedMilestone = milestones.filter({ progress >= $0 }).max() {
+                let percentage = Int(achievedMilestone * 100)
+                let notification = NotificationItem(
                     type: .milestone,
                     title: "Milestone Achieved! 🎉",
-                    message: "You've paid off 50% of your \(debt.debtName ?? "debt")! Keep up the great work!",
+                    message: "You've paid off \(percentage)% of your \(debt.debtName ?? "debt")! Keep up the great work!",
                     date: Date(),
                     relatedDebtID: debt.debtID
-                ))
+                )
+                newNotifications.append(notification)
             }
         }
         
@@ -151,6 +156,7 @@ struct NotificationCenterView: View {
         return formatter.string(from: date)
     }
 }
+
 struct FilterTab: View {
     let title: String
     let isSelected: Bool

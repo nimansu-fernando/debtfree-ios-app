@@ -507,18 +507,44 @@ struct PaymentDetailsSheet: View {
             return
         }
         
+        // Calculate new total paid amount
+        let newPaidAmount = debt.paidAmount + (paymentAmount - interestAccrued)
+        
+        // Calculate progress percentage before and after payment
+        let oldProgress = debt.paidAmount / debt.currentBalance
+        let newProgress = newPaidAmount / debt.currentBalance
+        
         // Update Debt
-        debt.paidAmount = debt.paidAmount + (paymentAmount - interestAccrued)
+        debt.paidAmount = newPaidAmount
         
         // Update Payment
         payment.amountPaid = paymentAmount
         payment.paidDate = Date()
         payment.status = "completed"
         
+        // Check if we've crossed any milestone thresholds
+        let milestones = [0.25, 0.50, 0.75, 1.0]
+        let crossedMilestone = milestones.first { milestone in
+            oldProgress < milestone && newProgress >= milestone
+        }
+        
         // Save changes to Core Data
         do {
             try viewContext.save()
-            alertMessage = "Payment marked as complete successfully"
+            
+            // Handle milestone notification if applicable
+            if let milestone = crossedMilestone,
+               let userID = debt.userID,
+               UserDefaults.standard.getNotificationSetting(for: .milestone, userID: userID) {
+                
+                // Schedule push notification
+                NotificationManager.shared.scheduleMilestoneNotification(for: debt, progress: milestone)
+                
+                alertMessage = "Payment marked as complete successfully"
+            } else {
+                alertMessage = "Payment marked as complete successfully"
+            }
+            
             showingAlert = true
         } catch {
             print("Error saving context: \(error)")

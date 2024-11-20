@@ -22,13 +22,11 @@ extension UserDefaults {
             [.paymentDue, .paymentOverdue, .paymentSuccess, .highInterest, .milestone, .general]
         }
         
-        // Get user specific key
         func keyForUser(_ userID: String) -> String {
             return "\(userID)_\(self.rawValue)"
         }
     }
     
-    // Helper methods for user specific notification settings
     func setNotificationSetting(_ value: Bool, for key: NotificationKeys, userID: String) {
         set(value, forKey: key.keyForUser(userID))
     }
@@ -295,13 +293,30 @@ struct NotificationsSettingsView: View {
     }
     
     private func binding(for key: UserDefaults.NotificationKeys) -> Binding<Bool> {
+        Binding(
+            get: { UserDefaults.standard.getNotificationSetting(for: key, userID: userID) },
+            set: { newValue in
+                UserDefaults.standard.setNotificationSetting(newValue, for: key, userID: userID)
+                // Update notification manager
+                if let type = notificationTypeForKey(key) {
+                    NotificationManager.shared.updateNotificationSettings(
+                        for: type,
+                        enabled: newValue,
+                        userID: userID
+                    )
+                }
+            }
+        )
+    }
+
+    private func notificationTypeForKey(_ key: UserDefaults.NotificationKeys) -> NotificationItem.NotificationType? {
         switch key {
-        case .paymentDue: return isPaymentDueEnabled
-        case .paymentOverdue: return isPaymentOverdueEnabled
-        case .paymentSuccess: return isPaymentSuccessEnabled
-        case .highInterest: return isHighInterestEnabled
-        case .milestone: return isMilestoneEnabled
-        case .general: return isGeneralEnabled
+        case .paymentDue: return .paymentDue
+        case .paymentOverdue: return .paymentOverdue
+        case .paymentSuccess: return .paymentSuccess
+        case .highInterest: return .highInterest
+        case .milestone: return .milestone
+        case .general: return .general
         }
     }
 }
@@ -310,9 +325,28 @@ struct NotificationSettingRow: View {
     let title: String
     let description: String
     @Binding var isEnabled: Bool
+    @State private var showingPermissionAlert = false
     
     var body: some View {
-        Toggle(isOn: $isEnabled) {
+        Toggle(isOn: Binding(
+            get: { isEnabled },
+            set: { newValue in
+                if newValue {
+                    // Request notification permission when enabling
+                    NotificationManager.shared.requestAuthorization { granted in
+                        DispatchQueue.main.async {
+                            if granted {
+                                isEnabled = true
+                            } else {
+                                showingPermissionAlert = true
+                            }
+                        }
+                    }
+                } else {
+                    isEnabled = false
+                }
+            }
+        )) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .foregroundColor(.primary)
@@ -323,6 +357,16 @@ struct NotificationSettingRow: View {
             }
         }
         .toggleStyle(SwitchToggleStyle(tint: Color("MainColor")))
+        .alert("Notification Permission Required", isPresented: $showingPermissionAlert) {
+            Button("OK", role: .cancel) { }
+            Button("Open Settings") {
+                if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(settingsUrl)
+                }
+            }
+        } message: {
+            Text("Please enable notifications in Settings to receive alerts.")
+        }
     }
 }
 

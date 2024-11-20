@@ -30,12 +30,24 @@ struct DebtFreeApp: App {
         let hasLaunchedBefore = UserDefaults.standard.bool(forKey: "hasLaunchedBefore")
         _isFirstLaunch = State(initialValue: !hasLaunchedBefore)
         
+        // Request notification authorization on app launch
+        NotificationManager.shared.requestAuthorization { granted in
+            print("Notification permission granted: \(granted)")
+        }
+        
     }
     
     func resetOnboarding() {
         UserDefaults.standard.removeObject(forKey: "hasLaunchedBefore")
         UserDefaults.standard.synchronize()
     }
+    
+//    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+//        NotificationManager.shared.requestAuthorization { granted in
+//            // Handle authorization result
+//        }
+//        return true
+//    }
     
     var body: some Scene {
         WindowGroup {
