@@ -307,6 +307,7 @@ struct PaymentDetailsSheet: View {
     @State private var showingAlert = false
     @State private var showingConfirmation = false
     @State private var alertMessage = ""
+    @State private var isCompleted = false
     
     init(payment: Payment) {
         self.payment = payment
@@ -450,7 +451,7 @@ struct PaymentDetailsSheet: View {
                 }
             }
             .navigationBarItems(trailing: Button("Done") {
-                dismiss()
+                    dismiss()
             })
             .alert("Confirm Payment", isPresented: $showingConfirmation) {
                 Button("Cancel", role: .cancel) { }
@@ -462,13 +463,14 @@ struct PaymentDetailsSheet: View {
             }
             .alert("Payment Update", isPresented: $showingAlert) {
                 Button("OK") {
-                    if payment.status == "completed" {
+                    if isCompleted {
                         dismiss()
                     }
                 }
             } message: {
                 Text(alertMessage)
             }
+            .interactiveDismissDisabled(isCompleted)
         }
         .onAppear {
             fetchDebtDetails()
@@ -534,17 +536,13 @@ struct PaymentDetailsSheet: View {
             
             // Handle milestone notification if applicable
             if let milestone = crossedMilestone,
-               let userID = debt.userID,
-               UserDefaults.standard.getNotificationSetting(for: .milestone, userID: userID) {
-                
-                // Schedule push notification
+                let userID = debt.userID,
+                UserDefaults.standard.getNotificationSetting(for: .milestone, userID: userID) {
                 NotificationManager.shared.scheduleMilestoneNotification(for: debt, progress: milestone)
-                
-                alertMessage = "Payment marked as complete successfully"
-            } else {
-                alertMessage = "Payment marked as complete successfully"
             }
             
+            isCompleted = true
+            alertMessage = "Payment marked as complete successfully"
             showingAlert = true
         } catch {
             print("Error saving context: \(error)")
