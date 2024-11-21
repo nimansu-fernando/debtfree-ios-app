@@ -340,7 +340,7 @@ struct PlanView: View {
                         }
                     }
                 }
-                .padding(.bottom, 80)
+                .padding(.bottom, 20)
             }
             .background(Color(.systemGray6))
             .onAppear {
