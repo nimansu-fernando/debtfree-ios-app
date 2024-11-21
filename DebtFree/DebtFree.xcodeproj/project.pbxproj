@@ -17,7 +17,7 @@
 		9A3291412CDA24E300C3FFEF /* PlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A3291402CDA24E300C3FFEF /* PlanView.swift */; };
 		9A3291432CDA2F3300C3FFEF /* BudgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A3291422CDA2F3300C3FFEF /* BudgetView.swift */; };
 		9A5B90422CDA41E90033F368 /* TrackingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A5B90412CDA41E90033F368 /* TrackingView.swift */; };
-		9A827AE02CDB7FD600645F0F /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 9A827ADF2CDB7FD600645F0F /* GoogleService-Info.plist */; };
+		9A827AE02CDB7FD600645F0F /* Downloads in Resources */ = {isa = PBXBuildFile; fileRef = 9A827ADF2CDB7FD600645F0F /* Downloads */; };
 		9A827AE22CDB812000645F0F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A827AE12CDB812000645F0F /* AppDelegate.swift */; };
 		9A827AE52CDB832500645F0F /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 9A827AE42CDB832500645F0F /* GoogleSignIn */; };
 		9A827AE72CDB832500645F0F /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 9A827AE62CDB832500645F0F /* GoogleSignInSwift */; };
@@ -37,6 +37,7 @@
 		9ABB2F972CDC8ACF0000AC3C /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ABB2F962CDC8ACF0000AC3C /* MainTabView.swift */; };
 		9ABB2F992CDCD2770000AC3C /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ABB2F982CDCD2770000AC3C /* KeychainHelper.swift */; };
 		9ABB2FA32CDCE2F00000AC3C /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ABB2FA22CDCE2F00000AC3C /* ProfileView.swift */; };
+		9AC07F142CEF349200393FDD /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 9AC07F132CEF349200393FDD /* GoogleService-Info.plist */; };
 		9ACC6A9F2CEDE66600675AB4 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACC6A9E2CEDE66600675AB4 /* NotificationManager.swift */; };
 		9AF2D7F02CCE182800176584 /* DebtFreeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AF2D7EF2CCE182800176584 /* DebtFreeApp.swift */; };
 		9AF2D7F42CCE182900176584 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9AF2D7F32CCE182900176584 /* Assets.xcassets */; };
@@ -81,7 +82,7 @@
 		9A3291422CDA2F3300C3FFEF /* BudgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BudgetView.swift; sourceTree = "<group>"; };
 		9A5B90412CDA41E90033F368 /* TrackingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackingView.swift; sourceTree = "<group>"; };
 		9A827AD82CDB7E2D00645F0F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		9A827ADF2CDB7FD600645F0F /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../../../.Trash/GoogleService-Info.plist"; sourceTree = "<group>"; };
+		9A827ADF2CDB7FD600645F0F /* Downloads */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = folder; name = Downloads; path = ../../../../Downloads; sourceTree = "<group>"; };
 		9A827AE12CDB812000645F0F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		9A8821F32CDB27CF00E66870 /* SplashScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashScreen.swift; sourceTree = "<group>"; };
 		9A8821FA2CDB442200E66870 /* DebtFree.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DebtFree.entitlements; sourceTree = "<group>"; };
@@ -99,6 +100,7 @@
 		9ABB2F962CDC8ACF0000AC3C /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		9ABB2F982CDCD2770000AC3C /* KeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
 		9ABB2FA22CDCE2F00000AC3C /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		9AC07F132CEF349200393FDD /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../../../Downloads/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		9ACC6A9E2CEDE66600675AB4 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
 		9AF2D7EC2CCE182800176584 /* DebtFree.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DebtFree.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9AF2D7EF2CCE182800176584 /* DebtFreeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebtFreeApp.swift; sourceTree = "<group>"; };
@@ -242,7 +244,8 @@
 			isa = PBXGroup;
 			children = (
 				9A827AD82CDB7E2D00645F0F /* Info.plist */,
-				9A827ADF2CDB7FD600645F0F /* GoogleService-Info.plist */,
+				9AC07F132CEF349200393FDD /* GoogleService-Info.plist */,
+				9A827ADF2CDB7FD600645F0F /* Downloads */,
 				9A8821FA2CDB442200E66870 /* DebtFree.entitlements */,
 				9AF2D7FA2CCE182900176584 /* DebtFree.xcdatamodeld */,
 				9AF2D7F82CCE182900176584 /* Persistence.swift */,
@@ -398,8 +401,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				9AF2D7F72CCE182900176584 /* Preview Assets.xcassets in Resources */,
+				9AC07F142CEF349200393FDD /* GoogleService-Info.plist in Resources */,
 				9AF2D7F42CCE182900176584 /* Assets.xcassets in Resources */,
-				9A827AE02CDB7FD600645F0F /* GoogleService-Info.plist in Resources */,
+				9A827AE02CDB7FD600645F0F /* Downloads in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

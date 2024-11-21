@@ -216,7 +216,7 @@ struct SignInView: View {
                         .padding(.horizontal, 30)
                     }
                     
-                    Spacer()
+                    //Spacer()
                     
                     HStack {
                         Text("Don't have an account?")

@@ -428,9 +428,10 @@ struct DebtInfoCard: View {
     let debt: Debt
     
     private var chartData: [ProgressData] {
-        [
-            ProgressData(type: "Paid", value: progress * 100),
-            ProgressData(type: "Remaining", value: (1 - progress) * 100)
+        let safeProgress = max(0, min(progress, 1)) // Ensure progress is between 0 and 1
+        return [
+            ProgressData(type: "Paid", value: safeProgress * 100),
+            ProgressData(type: "Remaining", value: (1 - safeProgress) * 100)
         ]
     }
     
@@ -455,7 +456,7 @@ struct DebtInfoCard: View {
                 }
                 .frame(width: 60, height: 60)
                 .overlay {
-                    Text("\(Int(progress * 100))%")
+                    Text("\(progressPercentage)%")
                         .font(.system(.body, design: .rounded))
                         .fontWeight(.semibold)
                 }
@@ -493,6 +494,11 @@ struct DebtInfoCard: View {
         .background(Color.white)
         .cornerRadius(12)
         .padding(.horizontal)
+    }
+    
+    private var progressPercentage: Int {
+        let safeProgress = max(0, min(progress, 1)) // Ensure progress is between 0 and 1
+        return Int(safeProgress * 100)
     }
 }
 

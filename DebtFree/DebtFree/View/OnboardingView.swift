@@ -118,11 +118,13 @@ struct OnboardingPageView: View {
                 .font(.title)
                 .fontWeight(.bold)
                 .padding(.top, 20)
+                .fixedSize(horizontal: false, vertical: true)
             Text(description)
                 .font(.body)
                 .foregroundColor(.gray)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 30)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .padding()
     }
