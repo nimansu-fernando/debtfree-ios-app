@@ -427,14 +427,14 @@ struct AddDebtView: View {
                 NotificationManager.shared.scheduleHighInterestNotification(for: newDebt)
             }
             
-//            // Schedule payment due notifications
-//            NotificationManager.shared.schedulePaymentDueNotifications(for: newDebt)
-//            
-//            // Schedule high interest notification if applicable
-//            NotificationManager.shared.scheduleHighInterestNotification(for: newDebt)
-//            
-//            // Initial milestone notification (0% progress)
-//            NotificationManager.shared.scheduleMilestoneNotification(for: newDebt, progress: 0.0)
+            // Schedule payment due notifications
+            NotificationManager.shared.schedulePaymentDueNotifications(for: newDebt)
+            
+            // Schedule high interest notification if applicable
+            NotificationManager.shared.scheduleHighInterestNotification(for: newDebt)
+            
+            // Initial milestone notification (0% progress)
+            NotificationManager.shared.scheduleMilestoneNotification(for: newDebt, progress: 0.0)
             
             print("Debt and payments saved successfully with ID: \(newDebt.debtID?.uuidString ?? "unknown")")
         } catch {

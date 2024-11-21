@@ -121,7 +121,7 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
             content.body = "Congratulations! You've paid off \(percentage)% of your \(debtName)!"
             content.sound = .default
             
-            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 30, repeats: false)
+            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
             let identifier = "milestone-\(percentage)-\(debt.debtID?.uuidString ?? "")"
             
             let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
@@ -147,7 +147,7 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         content.body = "\(debtName) has a high APR of \(String(format: "%.1f", debt.apr))%. Consider prioritizing this payment or exploring refinancing options."
         content.sound = .default
         
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 30, repeats: false)
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
         let identifier = "high-interest-\(debt.debtID?.uuidString ?? "")"
         
         let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
