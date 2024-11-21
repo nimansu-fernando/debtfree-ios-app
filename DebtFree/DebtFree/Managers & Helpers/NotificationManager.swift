@@ -9,6 +9,8 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     override init() {
         super.init()
         UNUserNotificationCenter.current().delegate = self
+        
+        resetBadgeCount()
     }
     
     func requestAuthorization(completion: @escaping (Bool) -> Void) {
@@ -16,6 +18,13 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
             DispatchQueue.main.async {
                 completion(granted)
             }
+        }
+    }
+    
+    func resetBadgeCount() {
+        DispatchQueue.main.async {
+            UIApplication.shared.applicationIconBadgeNumber = 0
+            UNUserNotificationCenter.current().removeAllDeliveredNotifications()
         }
     }
     
@@ -83,7 +92,7 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
             content.title = "Payment Due Tomorrow!"
             content.body = "Payment of LKR \(String(format: "%.2f", debt.minimumPayment)) for \(debtName) is due tomorrow"
             content.sound = .default
-            content.badge = 1
+            //content.badge = 1
             
             // Schedule for current time if payment is due tomorrow
             let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 10, repeats: false)
