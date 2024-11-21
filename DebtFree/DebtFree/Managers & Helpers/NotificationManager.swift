@@ -77,6 +77,27 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
             return
         }
         
+        //payment is due tomorrow
+        if isDateTomorrow(nextPaymentDate) {
+            let content = UNMutableNotificationContent()
+            content.title = "Payment Due Tomorrow!"
+            content.body = "Payment of LKR \(String(format: "%.2f", debt.minimumPayment)) for \(debtName) is due tomorrow"
+            content.sound = .default
+            content.badge = 1
+            
+            // Schedule for current time if payment is due tomorrow
+            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 10, repeats: false)
+            
+            let identifier = "payment-due-tomorrow-\(debt.debtID?.uuidString ?? "")"
+            let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
+            
+            UNUserNotificationCenter.current().add(request) { error in
+                if let error = error {
+                    print("Error scheduling tomorrow's due notification: \(error.localizedDescription)")
+                }
+            }
+        }
+        
         // notification intervals
         let intervals = [7, 4, 1]  // 1 week, 4 days, and 1 day before
         
@@ -100,6 +121,12 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
                 }
             }
         }
+    }
+    
+    private func isDateTomorrow(_ date: Date) -> Bool {
+        let calendar = Calendar.current
+        let tomorrow = calendar.date(byAdding: .day, value: 1, to: Date())!
+        return calendar.isDate(date, inSameDayAs: tomorrow)
     }
     
     func scheduleMilestoneNotification(for debt: Debt, progress: Double) {
