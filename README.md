@@ -1,4 +1,4 @@
-# debtfree-ios-app
+# DebtFree - Personal Debt Management and Payment Tracker
 
 Name : K H N L Fernando
 
